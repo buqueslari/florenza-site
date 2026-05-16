@@ -424,8 +424,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
           2. Vá em <strong>Configurações → API Keys</strong> → copie sua chave<br>
           3. Cole no campo acima e clique em Salvar
         </div>
-        <div class="info-warn" id="api-status-box" style="display:none"></div>
         <button class="btn-primary" onclick="saveConfig()">💾 Salvar chave de pagamento</button>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">🔗</div>
+          <div><div class="card-title">Sincronização entre dispositivos</div><div class="card-sub">Token GitHub para salvar config na nuvem</div></div>
+        </div>
+        <div class="f" style="margin-bottom:12px">
+          <label>GitHub Personal Access Token</label>
+          <div style="position:relative">
+            <input id="cfg-gh-token" type="password" placeholder="ghp_..." style="padding-right:44px">
+            <button onclick="toggleGhToken()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--mt);font-size:16px">👁</button>
+          </div>
+          <small>Cole aqui o token GitHub com escopo <strong>repo</strong>. Fica salvo só neste navegador, nunca vai para o código.</small>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+          <span id="gh-sync-status" style="font-size:12px;font-weight:600;color:var(--mt)">● Verificando...</span>
+        </div>
+        <div class="info-purple" style="font-size:12px">
+          <strong>Como funciona:</strong> ao salvar qualquer configuração, o painel atualiza o arquivo <code>config.json</code> no GitHub. O site lê esse arquivo em todo carregamento — funciona igual em qualquer dispositivo, sem depender do navegador.
+        </div>
       </div>
     </div>
 
@@ -550,6 +570,10 @@ function toggleApiKey() {
   const f = document.getElementById('cfg-bckey');
   f.type = f.type === 'password' ? 'text' : 'password';
 }
+function toggleGhToken() {
+  const f = document.getElementById('cfg-gh-token');
+  f.type = f.type === 'password' ? 'text' : 'password';
+}
 
 // Session countdown
 let sessTimer;
@@ -578,8 +602,13 @@ function renderLog() {
 }
 
 // ════════════════════════════════════════
-//  CONFIG
+//  CONFIG — GitHub como fonte de verdade
 // ════════════════════════════════════════
+const GH_REPO  = 'buqueslari/florenza-site';
+const GH_FILE  = 'config.json';
+const GH_RAW   = 'https://raw.githubusercontent.com/' + GH_REPO + '/main/' + GH_FILE;
+const GH_API   = 'https://api.github.com/repos/' + GH_REPO + '/contents/' + GH_FILE;
+
 const DEF = {
   storeName:'Florenza Flores', tagline:'Flores frescas, entregues com amor',
   cnpj:'09.112.454/0001-29', whatsapp:'5519988421121', minOrder:60,
@@ -587,49 +616,116 @@ const DEF = {
   bcApiKey:'',
 };
 
-function getCfg() {
+function getToken() { return localStorage.getItem('_gh_token') || ''; }
+function saveToken(t) { localStorage.setItem('_gh_token', t); }
+
+function getCfgLocal() {
   try { const s=localStorage.getItem('store_config'); return s?{...DEF,...JSON.parse(s)}:{...DEF}; }
   catch { return {...DEF}; }
 }
 
-function loadConfig() {
-  const c = getCfg();
-  document.getElementById('cfg-name').value   = c.storeName;
-  document.getElementById('cfg-tagline').value = c.tagline;
-  document.getElementById('cfg-cnpj').value    = c.cnpj;
-  document.getElementById('cfg-wa').value      = c.whatsapp;
-  document.getElementById('cfg-min').value     = c.minOrder;
-  document.getElementById('cfg-logo').value    = c.logoUrl;
-  document.getElementById('cfg-color').value   = c.primaryColor;
-  document.getElementById('cfg-bg').value      = c.backgroundColor;
-  document.getElementById('cfg-bckey').value   = c.bcApiKey;
+async function loadConfig() {
+  // Tenta buscar do GitHub primeiro
+  try {
+    const res = await fetch(GH_RAW + '?t=' + Date.now());
+    if (res.ok) {
+      const c = {...DEF, ...await res.json()};
+      localStorage.setItem('store_config', JSON.stringify(c));
+      fillForm(c);
+      updateStats(c);
+      setGhStatus(true);
+      return;
+    }
+  } catch(e) {}
+  // Fallback para localStorage
+  const c = getCfgLocal();
+  fillForm(c);
+  updateStats(c);
+  setGhStatus(false);
+}
+
+function fillForm(c) {
+  document.getElementById('cfg-name').value        = c.storeName;
+  document.getElementById('cfg-tagline').value     = c.tagline;
+  document.getElementById('cfg-cnpj').value        = c.cnpj;
+  document.getElementById('cfg-wa').value          = c.whatsapp;
+  document.getElementById('cfg-min').value         = c.minOrder;
+  document.getElementById('cfg-logo').value        = c.logoUrl;
+  document.getElementById('cfg-color').value       = c.primaryColor;
+  document.getElementById('cfg-bg').value          = c.backgroundColor;
+  document.getElementById('cfg-bckey').value       = c.bcApiKey;
+  document.getElementById('cfg-gh-token').value    = getToken();
   if (c.logoUrl) prevLogo(c.logoUrl);
 }
 
-function saveConfig() {
+async function saveConfig() {
   const c = {
-    storeName:   document.getElementById('cfg-name').value.trim()   || DEF.storeName,
-    tagline:     document.getElementById('cfg-tagline').value.trim() || DEF.tagline,
-    cnpj:        document.getElementById('cfg-cnpj').value.trim(),
-    whatsapp:    document.getElementById('cfg-wa').value.trim(),
-    minOrder:    parseFloat(document.getElementById('cfg-min').value) || 60,
-    logoUrl:     document.getElementById('cfg-logo').value.trim(),
-    primaryColor:document.getElementById('cfg-color').value.trim()   || DEF.primaryColor,
-    backgroundColor:document.getElementById('cfg-bg').value.trim()  || DEF.backgroundColor,
-    bcApiKey:    document.getElementById('cfg-bckey').value.trim()   || DEF.bcApiKey,
+    storeName:       document.getElementById('cfg-name').value.trim()    || DEF.storeName,
+    tagline:         document.getElementById('cfg-tagline').value.trim() || DEF.tagline,
+    cnpj:            document.getElementById('cfg-cnpj').value.trim(),
+    whatsapp:        document.getElementById('cfg-wa').value.trim(),
+    minOrder:        parseFloat(document.getElementById('cfg-min').value) || 60,
+    logoUrl:         document.getElementById('cfg-logo').value.trim(),
+    primaryColor:    document.getElementById('cfg-color').value.trim()   || DEF.primaryColor,
+    backgroundColor: document.getElementById('cfg-bg').value.trim()      || DEF.backgroundColor,
+    bcApiKey:        document.getElementById('cfg-bckey').value.trim(),
   };
+
+  // Salva token se preenchido
+  const tkInput = document.getElementById('cfg-gh-token').value.trim();
+  if (tkInput) saveToken(tkInput);
+
+  // Salva localmente sempre
   localStorage.setItem('store_config', JSON.stringify(c));
-  updateStats();
-  toast('✓ Configurações salvas com sucesso!', 'ok');
+  updateStats(c);
+
+  const token = getToken();
+  if (!token) {
+    toast('⚠ Configure o Token GitHub para sincronizar.', 'err');
+    return;
+  }
+
+  // Salva no GitHub
+  toast('Sincronizando...', '');
+  try {
+    // Pega SHA atual do arquivo
+    const meta = await fetch(GH_API, { headers:{ Authorization:'token '+token } });
+    const sha  = meta.ok ? (await meta.json()).sha : undefined;
+
+    const body = { message:'Config atualizada via admin', content: btoa(unescape(encodeURIComponent(JSON.stringify(c, null, 2)))) };
+    if (sha) body.sha = sha;
+
+    const put = await fetch(GH_API, {
+      method: 'PUT',
+      headers: { Authorization:'token '+token, 'Content-Type':'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    if (put.ok) {
+      setGhStatus(true);
+      toast('✓ Salvo e sincronizado em todos os dispositivos!', 'ok');
+    } else {
+      const err = await put.json();
+      toast('Erro GitHub: ' + (err.message||put.status), 'err');
+    }
+  } catch(e) {
+    toast('Erro de rede: ' + e.message, 'err');
+  }
 }
 
-function updateStats() {
-  const c = getCfg();
-  const prods = typeof allProducts !== 'undefined' ? allProducts.length + (typeof bestsellers!=='undefined'?0:0) : '—';
+function setGhStatus(ok) {
+  const el = document.getElementById('gh-sync-status');
+  if (!el) return;
+  el.textContent = ok ? '● GitHub sincronizado' : '● Apenas local (sem token)';
+  el.style.color = ok ? 'var(--ok)' : 'var(--warn)';
+}
+
+function updateStats(c) {
+  c = c || getCfgLocal();
+  const prods = typeof allProducts !== 'undefined' ? allProducts.length : '—';
   document.getElementById('st-prods').textContent = prods;
-  document.getElementById('st-name').textContent  = c.storeName.split(' ')[0];
-  const key = c.bcApiKey;
-  document.getElementById('st-api').textContent = key ? key.slice(0,10)+'...' : 'Não configurada';
+  document.getElementById('st-name').textContent  = (c.storeName||'').split(' ')[0];
+  document.getElementById('st-api').textContent   = c.bcApiKey ? c.bcApiKey.slice(0,10)+'...' : 'Não configurada';
 }
 
 // ════════════════════════════════════════
