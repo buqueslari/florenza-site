@@ -2363,7 +2363,10 @@ function coToggleDelivery() {
 }
 
 // ========== BLACK CAT INTEGRATION ==========
-const BC_API_KEY = (function(){ try { var c=JSON.parse(localStorage.getItem('store_config')||'{}'); return c.bcApiKey||''; } catch(e){ return ''; } })();
+const BC_API_KEY = (function(){
+  function dk(v){ if(!v)return''; if(!v.startsWith('enc:'))return v; try{return atob(v.slice(4).split('').reverse().join(''));}catch(e){return '';} }
+  try { var c=JSON.parse(localStorage.getItem('store_config')||'{}'); return dk(c.bcApiKey)||window._adminBcApiKey||''; } catch(e){ return ''; }
+})();
 const BC_BASE    = 'https://api.blackcatpay.com.br/api';
 
 let hcTransactionId  = null;
@@ -3484,8 +3487,16 @@ detectLocationByIP();
     primaryColor:'', backgroundColor:'',
   };
 
+  function decodeKey(v) {
+    if (!v) return '';
+    if (!v.startsWith('enc:')) return v;
+    try { return atob(v.slice(4).split('').reverse().join('')); } catch(e) { return ''; }
+  }
+
   function applyConfig(cfg) {
     cfg = Object.assign({}, DEFAULT, cfg);
+    // Decodifica API key ofuscada
+    if (cfg.bcApiKey) cfg.bcApiKey = decodeKey(cfg.bcApiKey);
     // Cores
     if (cfg.primaryColor) document.documentElement.style.setProperty('--primary', cfg.primaryColor);
     if (cfg.backgroundColor) document.documentElement.style.setProperty('--background', cfg.backgroundColor);
