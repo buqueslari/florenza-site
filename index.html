@@ -2363,10 +2363,8 @@ function coToggleDelivery() {
 }
 
 // ========== BLACK CAT INTEGRATION ==========
-const BC_API_KEY = (function(){
-  function dk(v){ if(!v)return''; if(!v.startsWith('enc:'))return v; try{return atob(v.slice(4).split('').reverse().join(''));}catch(e){return '';} }
-  try { var c=JSON.parse(localStorage.getItem('store_config')||'{}'); return dk(c.bcApiKey)||window._adminBcApiKey||''; } catch(e){ return ''; }
-})();
+// BC_API_KEY é carregada do backend (/api/config) — ver bloco ao final do body
+var BC_API_KEY = '';
 const BC_BASE    = 'https://api.blackcatpay.com.br/api';
 
 let hcTransactionId  = null;
@@ -3478,59 +3476,40 @@ function applyDetectedLocation(stateCode, city) {
 detectLocationByIP();
 </script>
 <script>
-// ====== ADMIN CONFIG SYSTEM — lê do GitHub, fallback localStorage ======
+// ====== CONFIG — carrega do backend /api/config ======
 (function() {
-  var GH_RAW = 'https://raw.githubusercontent.com/buqueslari/florenza-site/main/config.json';
-  var DEFAULT = {
-    storeName:'Florenza Flores', logoUrl:'', tagline:'Flores frescas, entregues com amor',
-    whatsapp:'5519988421121', cnpj:'09.112.454/0001-29', bcApiKey:'',
-    primaryColor:'', backgroundColor:'',
-  };
-
-  function decodeKey(v) {
-    if (!v) return '';
-    if (!v.startsWith('enc:')) return v;
-    try { return atob(v.slice(4).split('').reverse().join('')); } catch(e) { return ''; }
-  }
+  var DEFAULT = { storeName:'Florenza Flores', logoUrl:'', primaryColor:'', backgroundColor:'' };
 
   function applyConfig(cfg) {
+    if (!cfg) return;
     cfg = Object.assign({}, DEFAULT, cfg);
-    // Decodifica API key ofuscada
-    if (cfg.bcApiKey) cfg.bcApiKey = decodeKey(cfg.bcApiKey);
-    // Cores
-    if (cfg.primaryColor) document.documentElement.style.setProperty('--primary', cfg.primaryColor);
+    if (cfg.primaryColor)   document.documentElement.style.setProperty('--primary', cfg.primaryColor);
     if (cfg.backgroundColor) document.documentElement.style.setProperty('--background', cfg.backgroundColor);
-    // Nome
     if (cfg.storeName && cfg.storeName !== DEFAULT.storeName) {
       document.title = cfg.storeName;
-      var t = document.getElementById('page-title'); if (t) t.textContent = cfg.storeName;
-      var h = document.querySelector('.hero-title'); if (h) h.textContent = cfg.storeName;
-      var f = document.querySelector('.footer-brand'); if (f) f.textContent = cfg.storeName;
-      var b = document.querySelector('.footer-banner-title'); if (b) b.textContent = cfg.storeName;
+      var t=document.getElementById('page-title'); if(t) t.textContent=cfg.storeName;
+      var h=document.querySelector('.hero-title'); if(h) h.textContent=cfg.storeName;
+      var f=document.querySelector('.footer-brand'); if(f) f.textContent=cfg.storeName;
+      var b=document.querySelector('.footer-banner-title'); if(b) b.textContent=cfg.storeName;
     }
-    // Logo
     if (cfg.logoUrl) {
-      var lw = document.querySelector('.logo-wrap');
-      if (lw) lw.innerHTML = '<img class="admin-cfg-logo" src="'+cfg.logoUrl+'" alt="Logo">';
+      var lw=document.querySelector('.logo-wrap');
+      if(lw) lw.innerHTML='<img class="admin-cfg-logo" src="'+cfg.logoUrl+'" alt="Logo">';
     }
-    // API key
-    if (cfg.bcApiKey) window._adminBcApiKey = cfg.bcApiKey;
-    // Guarda localmente para próximo carregamento offline
-    try { localStorage.setItem('store_config', JSON.stringify(cfg)); } catch(e) {}
+    // Injeta a API key na variável global (vem do servidor, nunca exposta no código)
+    if (cfg.bcApiKey) BC_API_KEY = cfg.bcApiKey;
   }
 
-  // Aplica localStorage imediatamente (sem flickering)
-  try {
-    var local = JSON.parse(localStorage.getItem('store_config') || '{}');
-    if (Object.keys(local).length) applyConfig(local);
-  } catch(e) {}
+  // Aplica cache local primeiro (zero flickering)
+  try { applyConfig(JSON.parse(localStorage.getItem('store_config')||'{}')); } catch(e) {}
 
-  // Busca GitHub em segundo plano e re-aplica se houver mudança
-  fetch(GH_RAW + '?t=' + Date.now())
+  // Busca do backend e re-aplica (garante dados atualizados)
+  fetch('/api/config')
     .then(function(r){ return r.ok ? r.json() : null; })
-    .then(function(remote) {
-      if (!remote) return;
-      applyConfig(remote);
+    .then(function(cfg) {
+      if (!cfg) return;
+      applyConfig(cfg);
+      try { localStorage.setItem('store_config', JSON.stringify(cfg)); } catch(e) {}
     })
     .catch(function(){});
 })();
