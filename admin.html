@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --p:#6d28d9;--p2:#7c3aed;--p3:#8b5cf6;--pl:#ede9fe;--pl2:#f5f3ff;
+  --bg:#f8f7ff;--card:#ffffff;--bd:#e5e7eb;--bd2:#d1d5db;
+  --tx:#111827;--mt:#6b7280;--mt2:#9ca3af;
+  --ok:#059669;--okl:#d1fae5;--err:#dc2626;--errl:#fee2e2;
+  --warn:#d97706;--warnl:#fef3c7;
+  --sh:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
+  --sh2:0 4px 16px rgba(109,40,217,.15);
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;font-size:14px;line-height:1.5}
+
+/* ───────── LOGIN ───────── */
+#login-screen{
+  display:flex;align-items:center;justify-content:center;min-height:100vh;
+  background:linear-gradient(135deg,#2d1b69 0%,#4c1d95 40%,#6d28d9 100%);
+  padding:16px;
+}
+.login-card{
+  background:#fff;border-radius:20px;padding:44px 40px;width:100%;max-width:380px;
+  box-shadow:0 24px 64px rgba(0,0,0,.35);text-align:center;
+}
+.login-logo{
+  width:68px;height:68px;border-radius:18px;background:linear-gradient(135deg,var(--p),var(--p3));
+  display:flex;align-items:center;justify-content:center;margin:0 auto 20px;
+  box-shadow:0 8px 24px rgba(109,40,217,.4);font-size:30px;
+}
+.login-card h2{font-size:22px;font-weight:800;color:var(--tx);margin-bottom:4px}
+.login-card p{color:var(--mt);font-size:13px;margin-bottom:28px}
+.input-wrap{position:relative;margin-bottom:12px}
+.input-wrap input{
+  width:100%;padding:13px 44px 13px 16px;border:1.5px solid var(--bd2);
+  border-radius:12px;font-size:15px;outline:none;transition:all .2s;background:#fafafa;
+}
+.input-wrap input:focus{border-color:var(--p2);background:#fff;box-shadow:0 0 0 4px rgba(109,40,217,.1)}
+.input-wrap .eye{
+  position:absolute;right:14px;top:50%;transform:translateY(-50%);
+  background:none;border:none;cursor:pointer;color:var(--mt);font-size:18px;
+  padding:2px;line-height:1;
+}
+.login-btn{
+  width:100%;padding:14px;background:linear-gradient(135deg,var(--p),var(--p2));
+  color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;
+  cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(109,40,217,.4);
+  margin-top:4px;
+}
+.login-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(109,40,217,.5)}
+.login-btn:active{transform:none}
+.login-btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.login-err{
+  background:var(--errl);border:1px solid #fca5a5;border-radius:10px;
+  padding:10px 14px;font-size:13px;color:var(--err);margin-top:12px;
+  display:none;font-weight:600;
+}
+.attempts-warn{
+  background:var(--warnl);border:1px solid #fcd34d;border-radius:10px;
+  padding:10px 14px;font-size:12px;color:var(--warn);margin-top:8px;display:none;
+}
+.lock-msg{
+  background:var(--errl);border:1px solid #fca5a5;border-radius:10px;
+  padding:12px 14px;font-size:13px;color:var(--err);margin-top:12px;
+  display:none;font-weight:600;
+}
+
+/* ───────── ADMIN ───────── */
+#admin-screen{display:none}
+
+.topbar{
+  background:linear-gradient(90deg,var(--p) 0%,var(--p2) 100%);
+  color:#fff;height:56px;padding:0 24px;
+  display:flex;align-items:center;gap:12px;
+  box-shadow:0 2px 8px rgba(109,40,217,.3);position:sticky;top:0;z-index:100;
+}
+.topbar-brand{font-size:16px;font-weight:800;margin-right:auto;display:flex;align-items:center;gap:8px}
+.topbar-brand span{font-size:20px}
+.topbar-tag{background:rgba(255,255,255,.15);font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:.05em}
+.tb-btn{
+  background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);
+  color:#fff;font-size:12px;font-weight:600;padding:7px 14px;border-radius:8px;
+  cursor:pointer;transition:all .15s;text-decoration:none;display:flex;align-items:center;gap:5px;
+}
+.tb-btn:hover{background:rgba(255,255,255,.25)}
+
+.tabs-wrap{background:#fff;border-bottom:2px solid var(--bd);position:sticky;top:56px;z-index:99;box-shadow:var(--sh)}
+.tabs{display:flex;padding:0 24px;gap:0;max-width:900px;margin:0 auto}
+.tab{
+  padding:14px 18px;font-size:13px;font-weight:600;border:none;background:none;
+  color:var(--mt);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;
+  transition:all .15s;display:flex;align-items:center;gap:6px;
+}
+.tab:hover{color:var(--p2)}
+.tab.on{color:var(--p2);border-bottom-color:var(--p2)}
+
+.body{max-width:900px;margin:0 auto;padding:24px 20px 60px}
+
+/* ───────── CARDS ───────── */
+.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:24px;margin-bottom:16px;box-shadow:var(--sh)}
+.card-header{display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--bd)}
+.card-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;background:var(--pl2);flex-shrink:0}
+.card-title{font-size:14px;font-weight:700;color:var(--tx)}
+.card-sub{font-size:12px;color:var(--mt);margin-top:1px}
+
+/* ───────── GRID / FIELDS ───────── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+@media(max-width:600px){.g2,.g3{grid-template-columns:1fr}}
+
+.f{display:flex;flex-direction:column;gap:5px}
+.f label{font-size:11px;font-weight:700;color:var(--mt);text-transform:uppercase;letter-spacing:.06em}
+.f input,.f textarea,.f select{
+  padding:10px 13px;border:1.5px solid var(--bd2);border-radius:10px;
+  font-size:13px;font-family:inherit;outline:none;transition:all .15s;background:#fff;
+  color:var(--tx);
+}
+.f input:focus,.f textarea:focus{border-color:var(--p2);box-shadow:0 0 0 3px rgba(109,40,217,.1)}
+.f small{font-size:11px;color:var(--mt2)}
+.f textarea{resize:vertical;min-height:64px}
+
+.color-row{display:flex;align-items:center;gap:8px}
+.color-row input[type="color"]{width:42px;height:38px;border:1.5px solid var(--bd2);border-radius:8px;cursor:pointer;padding:2px;background:none;flex-shrink:0}
+.color-row input[type="text"]{flex:1}
+
+/* ───────── BUTTONS ───────── */
+.btn-primary{
+  background:linear-gradient(135deg,var(--p),var(--p2));color:#fff;
+  border:none;padding:12px 28px;border-radius:10px;font-size:14px;font-weight:700;
+  cursor:pointer;width:100%;transition:all .2s;box-shadow:0 3px 10px rgba(109,40,217,.3);
+}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 5px 16px rgba(109,40,217,.4)}
+.btn-primary:active{transform:none}
+.btn-sm{padding:5px 10px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;border:none;transition:all .1s}
+.btn-del{background:#fee2e2;color:var(--err)}
+.btn-del:hover{background:#fecaca}
+.btn-add{background:linear-gradient(135deg,var(--p),var(--p2));color:#fff;padding:8px 16px;font-size:12px;border:none;border-radius:8px;font-weight:700;cursor:pointer}
+.btn-ghost{background:var(--bd);color:var(--tx);border:none;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer}
+
+/* ───────── LOGO PREVIEW ───────── */
+.logo-prev-wrap{display:flex;align-items:center;justify-content:center;height:100%}
+.logo-prev{width:80px;height:80px;border-radius:50%;border:2px solid var(--bd);object-fit:cover;display:none}
+.logo-prev.on{display:block}
+.logo-placeholder{width:80px;height:80px;border-radius:50%;background:var(--pl2);border:2px dashed var(--bd2);display:flex;align-items:center;justify-content:center;color:var(--mt2);font-size:28px}
+
+/* ───────── PRODUCTS ───────── */
+.prod-bar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.search{
+  flex:1;min-width:160px;padding:9px 13px;border:1.5px solid var(--bd2);
+  border-radius:10px;font-size:13px;outline:none;transition:all .15s;
+}
+.search:focus{border-color:var(--p2);box-shadow:0 0 0 3px rgba(109,40,217,.1)}
+
+.tbl-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--bd)}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{background:var(--bg);padding:9px 12px;text-align:left;font-size:10px;font-weight:800;color:var(--mt);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--bd)}
+.tbl td{padding:9px 12px;border-bottom:1px solid var(--bd);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:#faf9ff}
+.thumb{width:40px;height:40px;border-radius:8px;object-fit:cover;background:var(--bg)}
+.ei{width:100%;padding:5px 8px;border:1.5px solid var(--bd);border-radius:7px;font-size:12px;transition:all .12s}
+.ei:focus{border-color:var(--p2);outline:none;box-shadow:0 0 0 2px rgba(109,40,217,.1)}
+
+.pag{display:flex;gap:6px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+.pag button{padding:6px 12px;border-radius:7px;border:1.5px solid var(--bd2);cursor:pointer;font-size:12px;font-weight:600;background:#fff;color:var(--tx);transition:all .1s}
+.pag button.cur{background:linear-gradient(135deg,var(--p),var(--p2));color:#fff;border-color:transparent;box-shadow:0 2px 8px rgba(109,40,217,.3)}
+.pag button:hover:not(.cur){border-color:var(--p3);color:var(--p2)}
+
+.add-form{background:var(--pl2);border:1px solid #ddd6fe;border-radius:12px;padding:16px;margin-bottom:14px;display:none}
+.add-form.on{display:block}
+.add-form-title{font-size:13px;font-weight:700;margin-bottom:12px;color:var(--p)}
+
+/* ───────── SECTIONS ───────── */
+.sec{display:none}
+.sec.on{display:block}
+
+/* ───────── STATUS BADGE ───────── */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.badge-ok{background:var(--okl);color:var(--ok)}
+.badge-warn{background:var(--warnl);color:var(--warn)}
+.badge-err{background:var(--errl);color:var(--err)}
+
+/* ───────── INFO BOXES ───────── */
+.info-box{border-radius:12px;padding:14px 16px;font-size:13px;line-height:1.6}
+.info-ok{background:var(--okl);border:1px solid #6ee7b7;color:#065f46}
+.info-warn{background:var(--warnl);border:1px solid #fcd34d;color:#92400e}
+.info-purple{background:var(--pl2);border:1px solid #c4b5fd;color:var(--p)}
+
+/* ───────── TOAST ───────── */
+#toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);
+  background:#111827;color:#fff;padding:11px 22px;border-radius:50px;
+  font-size:13px;font-weight:600;transition:transform .25s cubic-bezier(.34,1.56,.64,1);
+  z-index:9999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.3);
+  display:flex;align-items:center;gap:8px;
+}
+#toast.show{transform:translateX(-50%) translateY(0)}
+#toast.ok{background:linear-gradient(135deg,#059669,#10b981)}
+#toast.err{background:linear-gradient(135deg,#dc2626,#ef4444)}
+
+/* ───────── STATS ───────── */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+@media(max-width:500px){.stats{grid-template-columns:1fr 1fr}}
+.stat-card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px;box-shadow:var(--sh)}
+.stat-val{font-size:22px;font-weight:800;color:var(--p2)}
+.stat-label{font-size:11px;color:var(--mt);font-weight:600;margin-top:2px}
+
+/* ───────── SECURITY LOG ───────── */
+.sec-log{max-height:160px;overflow-y:auto;background:var(--bg);border-radius:10px;padding:10px;font-size:11px;color:var(--mt);font-family:monospace;border:1px solid var(--bd)}
+.sec-log p{margin-bottom:4px}
+.sec-log .ok{color:var(--ok)}
+.sec-log .fail{color:var(--err)}
+</style>
+</head>
+<body>
+
+<!-- ════════════════ LOGIN ════════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">🌸</div>
+    <h2>Painel Administrativo</h2>
+    <p>Acesso restrito — área protegida</p>
+
+    <div class="input-wrap">
+      <input type="password" id="pwd" placeholder="Digite a senha" autocomplete="current-password"
+        onkeydown="if(event.key==='Enter')tryLogin()">
+      <button class="eye" onclick="togglePwd()" title="Mostrar/ocultar">👁</button>
+    </div>
+    <button class="login-btn" id="login-btn" onclick="tryLogin()">Entrar</button>
+    <div class="login-err" id="login-err"></div>
+    <div class="attempts-warn" id="atm-warn"></div>
+    <div class="lock-msg" id="lock-msg"></div>
+  </div>
+</div>
+
+<!-- ════════════════ ADMIN ════════════════ -->
+<div id="admin-screen">
+  <div class="topbar">
+    <div class="topbar-brand">
+      <span>🌸</span> Painel Admin <span class="topbar-tag">SEGURO</span>
+    </div>
+    <a class="tb-btn" href="index.html" target="_blank">🛍 Ver loja</a>
+    <button class="tb-btn" onclick="logout()">⎋ Sair</button>
+  </div>
+
+  <div class="tabs-wrap">
+    <div class="tabs">
+      <button class="tab on" onclick="showTab('painel',this)">📊 Painel</button>
+      <button class="tab" onclick="showTab('aparencia',this)">🎨 Aparência</button>
+      <button class="tab" onclick="showTab('produtos',this)">📦 Produtos</button>
+      <button class="tab" onclick="showTab('pagamento',this)">💳 Pagamento</button>
+    </div>
+  </div>
+
+  <div class="body">
+
+    <!-- ── PAINEL (dashboard) ── -->
+    <div class="sec on" id="sec-painel">
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-val" id="st-prods">—</div>
+          <div class="stat-label">Produtos ativos</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="st-name">—</div>
+          <div class="stat-label">Nome da loja</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="st-api">—</div>
+          <div class="stat-label">API Key</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">🔐</div>
+          <div><div class="card-title">Segurança da Sessão</div><div class="card-sub">Histórico de acessos</div></div>
+        </div>
+        <div class="sec-log" id="sec-log"></div>
+        <div style="margin-top:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <span class="badge badge-ok" id="session-status">● Sessão ativa</span>
+          <span style="font-size:12px;color:var(--mt)" id="session-timer"></span>
+          <button onclick="clearSecLog()" style="margin-left:auto;background:none;border:1px solid var(--bd);border-radius:7px;padding:5px 12px;font-size:11px;cursor:pointer;color:var(--mt)">Limpar log</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">⚡</div>
+          <div><div class="card-title">Ações rápidas</div></div>
+        </div>
+        <div class="g2">
+          <button onclick="showTab('aparencia',document.querySelectorAll('.tab')[1])" style="background:var(--pl2);border:1px solid #c4b5fd;border-radius:12px;padding:16px;cursor:pointer;text-align:left;transition:.15s" onmouseover="this.style.background='#ddd6fe'" onmouseout="this.style.background='var(--pl2)'">
+            <div style="font-size:22px;margin-bottom:6px">🎨</div>
+            <div style="font-size:13px;font-weight:700;color:var(--p)">Editar aparência</div>
+            <div style="font-size:11px;color:var(--mt);margin-top:2px">Nome, logo, cores</div>
+          </button>
+          <button onclick="showTab('pagamento',document.querySelectorAll('.tab')[3])" style="background:#f0fdf4;border:1px solid #6ee7b7;border-radius:12px;padding:16px;cursor:pointer;text-align:left;transition:.15s" onmouseover="this.style.background='#d1fae5'" onmouseout="this.style.background='#f0fdf4'">
+            <div style="font-size:22px;margin-bottom:6px">💳</div>
+            <div style="font-size:13px;font-weight:700;color:var(--ok)">Configurar PIX</div>
+            <div style="font-size:11px;color:var(--mt);margin-top:2px">API Key Black Cat Pay</div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── APARÊNCIA ── -->
+    <div class="sec" id="sec-aparencia">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">🏪</div>
+          <div><div class="card-title">Informações da Loja</div><div class="card-sub">Dados exibidos ao cliente</div></div>
+        </div>
+        <div class="g2">
+          <div class="f"><label>Nome da loja</label><input id="cfg-name" type="text" placeholder="Ex: Florenza Flores"></div>
+          <div class="f"><label>Slogan / Tagline</label><input id="cfg-tagline" type="text" placeholder="Flores frescas..."></div>
+          <div class="f"><label>CNPJ</label><input id="cfg-cnpj" type="text" placeholder="00.000.000/0001-00"></div>
+          <div class="f"><label>WhatsApp (com DDI)</label><input id="cfg-wa" type="text" placeholder="5511999999999"></div>
+          <div class="f"><label>Pedido mínimo (R$)</label><input id="cfg-min" type="number" placeholder="60"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">🖼</div>
+          <div><div class="card-title">Logo da Loja</div><div class="card-sub">URL de imagem ou caminho local</div></div>
+        </div>
+        <div class="g2">
+          <div class="f">
+            <label>URL da logo</label>
+            <input id="cfg-logo" type="text" placeholder="https://... ou imagens/logo.png" oninput="prevLogo(this.value)">
+            <small>Deixe vazio para usar o ícone padrão da floricultura</small>
+          </div>
+          <div class="logo-prev-wrap">
+            <img id="logo-prev" class="logo-prev" src="" alt="">
+            <div id="logo-placeholder" class="logo-placeholder">🌸</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">🎨</div>
+          <div><div class="card-title">Cores do Site</div><div class="card-sub">Personalize a identidade visual</div></div>
+        </div>
+        <div class="g2">
+          <div class="f">
+            <label>Cor principal (botões, preços)</label>
+            <div class="color-row">
+              <input type="color" id="cp-pick" value="#7c3aed" oninput="document.getElementById('cfg-color').value=this.value">
+              <input id="cfg-color" type="text" placeholder="hsl(340,45%,40%) ou #a02846" oninput="syncPick('cp-pick',this.value)">
+            </div>
+            <small>Padrão original: hsl(340, 45%, 40%)</small>
+          </div>
+          <div class="f">
+            <label>Cor de fundo</label>
+            <div class="color-row">
+              <input type="color" id="cb-pick" value="#fdf0ea" oninput="document.getElementById('cfg-bg').value=this.value">
+              <input id="cfg-bg" type="text" placeholder="hsl(15,60%,96%) ou #fdf0ea" oninput="syncPick('cb-pick',this.value)">
+            </div>
+            <small>Padrão original: hsl(15, 60%, 96%)</small>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="saveConfig()">💾 Salvar todas as configurações</button>
+    </div>
+
+    <!-- ── PRODUTOS ── -->
+    <div class="sec" id="sec-produtos">
+      <div class="card">
+        <div class="prod-bar">
+          <input class="search" type="search" placeholder="🔍 Buscar produto..." id="prod-q" oninput="filterProd(this.value)">
+          <button class="btn-add" onclick="toggleAdd()">+ Novo produto</button>
+        </div>
+
+        <div class="add-form" id="add-form">
+          <div class="add-form-title">✨ Adicionar novo produto</div>
+          <div class="g2" style="margin-bottom:10px">
+            <div class="f"><label>Nome</label><input id="n-name" class="ei" type="text" placeholder="Nome do produto"></div>
+            <div class="f"><label>Descrição</label><input id="n-desc" class="ei" type="text" placeholder="Descrição curta"></div>
+            <div class="f"><label>Preço (R$)</label><input id="n-price" class="ei" type="number" step="0.01" min="0" placeholder="0,00"></div>
+            <div class="f"><label>Preço antigo (R$)</label><input id="n-old" class="ei" type="number" step="0.01" min="0" placeholder="0,00"></div>
+            <div class="f" style="grid-column:1/-1"><label>Imagem (URL ou caminho)</label><input id="n-img" class="ei" type="text" placeholder="imagens/img_xxx.jpg ou URL completa"></div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn-add" onclick="addProd()">Adicionar produto</button>
+            <button class="btn-ghost" onclick="toggleAdd()">Cancelar</button>
+          </div>
+        </div>
+
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead><tr><th>Foto</th><th>Nome</th><th>Preço</th><th>De (R$)</th><th></th></tr></thead>
+            <tbody id="prod-tbody"></tbody>
+          </table>
+        </div>
+        <div class="pag" id="prod-pag"></div>
+      </div>
+    </div>
+
+    <!-- ── PAGAMENTO ── -->
+    <div class="sec" id="sec-pagamento">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">⚡</div>
+          <div><div class="card-title">Black Cat Pay — PIX</div><div class="card-sub">Gateway de pagamento integrado</div></div>
+        </div>
+        <div class="f" style="margin-bottom:16px">
+          <label>API Key</label>
+          <div style="position:relative">
+            <input id="cfg-bckey" type="password" placeholder="sk_live_..." style="padding-right:44px">
+            <button onclick="toggleApiKey()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--mt);font-size:16px" title="Mostrar/ocultar">👁</button>
+          </div>
+          <small>Obtenha sua chave em blackcatpay.com.br → Configurações → API Keys</small>
+        </div>
+        <div class="info-ok" style="margin-bottom:16px">
+          <strong>✓ Como configurar:</strong><br>
+          1. Acesse <strong>blackcatpay.com.br</strong> e faça login na sua conta<br>
+          2. Vá em <strong>Configurações → API Keys</strong> → copie sua chave<br>
+          3. Cole no campo acima e clique em Salvar
+        </div>
+        <div class="info-warn" id="api-status-box" style="display:none"></div>
+        <button class="btn-primary" onclick="saveConfig()">💾 Salvar chave de pagamento</button>
+      </div>
+    </div>
+
+  </div><!-- /body -->
+</div><!-- /admin-screen -->
+
+<div id="toast"></div>
+
+<script src="produtos.js"></script>
+<script>
+// ════════════════════════════════════════
+//  SECURITY — SHA-256 hash da senha
+// ════════════════════════════════════════
+const PASS_HASH = '62bb942352939e19c338bfcc4ef194221dcc45eaa242917286bdaffccd6ee7f1'; // SHA-256 de Drak2030#
+const MAX_ATM   = 5;
+const LOCK_MS   = 15 * 60 * 1000; // 15 min
+const SESS_MS   = 4 * 60 * 60 * 1000; // 4h sessão
+
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+function getAtm() { try { return JSON.parse(sessionStorage.getItem('_atm')||'{"n":0,"t":0}'); } catch { return {n:0,t:0}; } }
+function setAtm(o) { sessionStorage.setItem('_atm', JSON.stringify(o)); }
+
+function isLocked() {
+  const a = getAtm();
+  if (a.n >= MAX_ATM && Date.now() - a.t < LOCK_MS) return true;
+  if (a.n >= MAX_ATM && Date.now() - a.t >= LOCK_MS) { setAtm({n:0,t:0}); }
+  return false;
+}
+
+function isSessValid() {
+  const s = sessionStorage.getItem('_adm_ok');
+  const t = parseInt(sessionStorage.getItem('_adm_ts')||'0');
+  return s === '1' && Date.now() - t < SESS_MS;
+}
+
+function markSess() {
+  sessionStorage.setItem('_adm_ok','1');
+  sessionStorage.setItem('_adm_ts', Date.now().toString());
+}
+
+function addLog(msg, ok) {
+  const logs = JSON.parse(localStorage.getItem('_adm_log')||'[]');
+  logs.unshift({ t: new Date().toLocaleString('pt-BR'), msg, ok });
+  if (logs.length > 20) logs.pop();
+  localStorage.setItem('_adm_log', JSON.stringify(logs));
+}
+
+function clearSecLog() {
+  localStorage.removeItem('_adm_log');
+  renderLog();
+  toast('Log limpo.', 'ok');
+}
+
+async function tryLogin() {
+  if (isLocked()) { showLocked(); return; }
+  const pwd = document.getElementById('pwd').value;
+  if (!pwd) return;
+
+  const btn = document.getElementById('login-btn');
+  btn.disabled = true; btn.textContent = 'Verificando...';
+
+  const hash = await sha256(pwd);
+  const atm  = getAtm();
+
+  if (hash === PASS_HASH) {
+    setAtm({n:0,t:0});
+    markSess();
+    addLog('Login bem-sucedido', true);
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('admin-screen').style.display = 'block';
+    initAdmin();
+  } else {
+    atm.n++;
+    atm.t = Date.now();
+    setAtm(atm);
+    addLog('Tentativa falhou (' + atm.n + '/' + MAX_ATM + ')', false);
+    const err = document.getElementById('login-err');
+    err.textContent = '✕ Senha incorreta.';
+    err.style.display = 'block';
+    document.getElementById('pwd').value = '';
+    btn.disabled = false; btn.textContent = 'Entrar';
+
+    const rem = MAX_ATM - atm.n;
+    if (rem <= 2 && rem > 0) {
+      const w = document.getElementById('atm-warn');
+      w.textContent = '⚠ Atenção: ' + rem + ' tentativa(s) restante(s) antes do bloqueio por 15 min.';
+      w.style.display = 'block';
+    }
+    if (atm.n >= MAX_ATM) showLocked();
+    setTimeout(() => { err.style.display = 'none'; }, 3000);
+  }
+}
+
+function showLocked() {
+  const atm = getAtm();
+  const rem = Math.ceil((LOCK_MS - (Date.now() - atm.t)) / 60000);
+  document.getElementById('lock-msg').textContent = '🔒 Muitas tentativas. Aguarde ~' + rem + ' min para tentar novamente.';
+  document.getElementById('lock-msg').style.display = 'block';
+  document.getElementById('login-btn').disabled = true;
+  document.getElementById('login-btn').textContent = 'Bloqueado';
+}
+
+function logout() {
+  if (!confirm('Deseja encerrar a sessão?')) return;
+  addLog('Sessão encerrada pelo usuário', true);
+  sessionStorage.removeItem('_adm_ok');
+  sessionStorage.removeItem('_adm_ts');
+  document.getElementById('admin-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('pwd').value = '';
+}
+
+function togglePwd() {
+  const f = document.getElementById('pwd');
+  f.type = f.type === 'password' ? 'text' : 'password';
+}
+function toggleApiKey() {
+  const f = document.getElementById('cfg-bckey');
+  f.type = f.type === 'password' ? 'text' : 'password';
+}
+
+// Session countdown
+let sessTimer;
+function startSessTimer() {
+  const el = document.getElementById('session-timer');
+  sessTimer = setInterval(() => {
+    const ts = parseInt(sessionStorage.getItem('_adm_ts')||'0');
+    const rem = SESS_MS - (Date.now() - ts);
+    if (rem <= 0) { clearInterval(sessTimer); logout(); return; }
+    const h = Math.floor(rem/3600000);
+    const m = Math.floor((rem%3600000)/60000);
+    el.textContent = 'Expira em ' + (h>0?h+'h ':'')+m+'min';
+  }, 10000);
+  // first tick
+  const ts = parseInt(sessionStorage.getItem('_adm_ts')||'0');
+  const rem = SESS_MS - (Date.now() - ts);
+  const h = Math.floor(rem/3600000), m = Math.floor((rem%3600000)/60000);
+  el.textContent = 'Expira em ' + (h>0?h+'h ':'')+m+'min';
+}
+
+function renderLog() {
+  const logs = JSON.parse(localStorage.getItem('_adm_log')||'[]');
+  const el = document.getElementById('sec-log');
+  if (!logs.length) { el.innerHTML = '<p style="color:var(--mt2)">Nenhum registro ainda.</p>'; return; }
+  el.innerHTML = logs.map(l => `<p class="${l.ok?'ok':'fail'}">${l.ok?'✓':'✕'} [${l.t}] ${l.msg}</p>`).join('');
+}
+
+// ════════════════════════════════════════
+//  CONFIG
+// ════════════════════════════════════════
+const DEF = {
+  storeName:'Florenza Flores', tagline:'Flores frescas, entregues com amor',
+  cnpj:'09.112.454/0001-29', whatsapp:'5519988421121', minOrder:60,
+  logoUrl:'', primaryColor:'hsl(340, 45%, 40%)', backgroundColor:'hsl(15, 60%, 96%)',
+  bcApiKey:'',
+};
+
+function getCfg() {
+  try { const s=localStorage.getItem('store_config'); return s?{...DEF,...JSON.parse(s)}:{...DEF}; }
+  catch { return {...DEF}; }
+}
+
+function loadConfig() {
+  const c = getCfg();
+  document.getElementById('cfg-name').value   = c.storeName;
+  document.getElementById('cfg-tagline').value = c.tagline;
+  document.getElementById('cfg-cnpj').value    = c.cnpj;
+  document.getElementById('cfg-wa').value      = c.whatsapp;
+  document.getElementById('cfg-min').value     = c.minOrder;
+  document.getElementById('cfg-logo').value    = c.logoUrl;
+  document.getElementById('cfg-color').value   = c.primaryColor;
+  document.getElementById('cfg-bg').value      = c.backgroundColor;
+  document.getElementById('cfg-bckey').value   = c.bcApiKey;
+  if (c.logoUrl) prevLogo(c.logoUrl);
+}
+
+function saveConfig() {
+  const c = {
+    storeName:   document.getElementById('cfg-name').value.trim()   || DEF.storeName,
+    tagline:     document.getElementById('cfg-tagline').value.trim() || DEF.tagline,
+    cnpj:        document.getElementById('cfg-cnpj').value.trim(),
+    whatsapp:    document.getElementById('cfg-wa').value.trim(),
+    minOrder:    parseFloat(document.getElementById('cfg-min').value) || 60,
+    logoUrl:     document.getElementById('cfg-logo').value.trim(),
+    primaryColor:document.getElementById('cfg-color').value.trim()   || DEF.primaryColor,
+    backgroundColor:document.getElementById('cfg-bg').value.trim()  || DEF.backgroundColor,
+    bcApiKey:    document.getElementById('cfg-bckey').value.trim()   || DEF.bcApiKey,
+  };
+  localStorage.setItem('store_config', JSON.stringify(c));
+  updateStats();
+  toast('✓ Configurações salvas com sucesso!', 'ok');
+}
+
+function updateStats() {
+  const c = getCfg();
+  const prods = typeof allProducts !== 'undefined' ? allProducts.length + (typeof bestsellers!=='undefined'?0:0) : '—';
+  document.getElementById('st-prods').textContent = prods;
+  document.getElementById('st-name').textContent  = c.storeName.split(' ')[0];
+  const key = c.bcApiKey;
+  document.getElementById('st-api').textContent = key ? key.slice(0,10)+'...' : 'Não configurada';
+}
+
+// ════════════════════════════════════════
+//  UI HELPERS
+// ════════════════════════════════════════
+function syncPick(id, val) {
+  if (/^#[0-9a-f]{6}$/i.test(val)) document.getElementById(id).value = val;
+}
+
+function prevLogo(url) {
+  const img = document.getElementById('logo-prev');
+  const ph  = document.getElementById('logo-placeholder');
+  if (url) { img.src = url; img.classList.add('on'); ph.style.display = 'none'; }
+  else { img.classList.remove('on'); ph.style.display = 'flex'; }
+}
+
+let toastTid;
+function toast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = 'show ' + (type||'');
+  clearTimeout(toastTid);
+  toastTid = setTimeout(() => { el.className = ''; }, 2800);
+}
+
+function showTab(name, btn) {
+  document.querySelectorAll('.sec').forEach(s => s.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  document.getElementById('sec-' + name).classList.add('on');
+  btn.classList.add('on');
+  if (name === 'produtos') renderProds();
+}
+
+// ════════════════════════════════════════
+//  PRODUCTS
+// ════════════════════════════════════════
+let prodPage = 1, prodQ = '';
+const PER = 15;
+
+function getCust() { try { return JSON.parse(localStorage.getItem('custom_products')||'[]'); } catch { return []; } }
+function saveCust(l) { localStorage.setItem('custom_products', JSON.stringify(l)); }
+
+function allProds() {
+  const cust = getCust();
+  const base = typeof bestsellers !== 'undefined'
+    ? [...bestsellers, ...allProducts.filter(p => !bestsellers.find(b => b.id === p.id))]
+    : [...allProducts];
+  const ov = {};
+  cust.forEach(p => { if (p.id) ov[p.id] = p; });
+  const merged = base.map(p => ov[p.id] ? {...p,...ov[p.id]} : p).filter(p => !ov[p.id]?._deleted);
+  const news = cust.filter(p => !base.find(b => b.id === p.id) && !p._deleted);
+  return [...merged, ...news];
+}
+
+function filterProd(q) { prodQ = q; prodPage = 1; renderProds(); }
+
+function renderProds() {
+  const tbody = document.getElementById('prod-tbody');
+  if (!tbody) return;
+  const all = allProds();
+  const q   = prodQ.toLowerCase();
+  const fil = q ? all.filter(p => (p.name+' '+(p.desc||'')).toLowerCase().includes(q)) : all;
+  const sl  = fil.slice((prodPage-1)*PER, prodPage*PER);
+
+  tbody.innerHTML = sl.map(p => `
+    <tr>
+      <td><img class="thumb" src="${p.img||''}" onerror="this.style.opacity='.3'" loading="lazy"></td>
+      <td><input class="ei" value="${esc(p.name)}" onchange="updProd(${JSON.stringify(p.id)},'name',this.value)" style="width:180px"></td>
+      <td><input class="ei" type="number" step="0.01" value="${p.price}" onchange="updProd(${JSON.stringify(p.id)},'price',+this.value)" style="width:80px"></td>
+      <td><input class="ei" type="number" step="0.01" value="${p.oldPrice||''}" onchange="updProd(${JSON.stringify(p.id)},'oldPrice',+this.value||null)" style="width:80px"></td>
+      <td><button class="btn-sm btn-del" onclick="delProd(${JSON.stringify(p.id)})">✕</button></td>
+    </tr>`).join('');
+
+  const tot = Math.ceil(fil.length / PER);
+  const pag = document.getElementById('prod-pag');
+  pag.innerHTML = '';
+  for (let i = 1; i <= tot; i++) {
+    const b = document.createElement('button');
+    b.textContent = i;
+    if (i === prodPage) b.classList.add('cur');
+    b.onclick = () => { prodPage = i; renderProds(); };
+    pag.appendChild(b);
+  }
+}
+
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function updProd(id, field, val) {
+  const cust = getCust();
+  const ex   = cust.find(p => p.id === id);
+  const base = [...(typeof bestsellers!=='undefined'?bestsellers:[]),...allProducts].find(p => p.id === id);
+  if (ex) { ex[field] = val; }
+  else if (base) { cust.push({...base,[field]:val}); }
+  saveCust(cust);
+  toast('✓ Produto atualizado!', 'ok');
+}
+
+function delProd(id) {
+  if (!confirm('Remover este produto do catálogo?')) return;
+  const cust = getCust();
+  const ex   = cust.find(p => p.id === id);
+  if (ex) { ex._deleted = true; } else { cust.push({id,_deleted:true}); }
+  saveCust(cust);
+  renderProds();
+  toast('Produto removido.', 'ok');
+}
+
+function toggleAdd() { document.getElementById('add-form').classList.toggle('on'); }
+
+function addProd() {
+  const name  = document.getElementById('n-name').value.trim();
+  const price = parseFloat(document.getElementById('n-price').value);
+  if (!name || !price) { toast('Preencha nome e preço.', 'err'); return; }
+  const cust = getCust();
+  cust.push({
+    id: 'c_'+Date.now(), name,
+    desc: document.getElementById('n-desc').value.trim() || name,
+    price, oldPrice: parseFloat(document.getElementById('n-old').value)||null,
+    img: document.getElementById('n-img').value.trim(), ribbon: null,
+  });
+  saveCust(cust);
+  ['n-name','n-desc','n-price','n-old','n-img'].forEach(id => document.getElementById(id).value = '');
+  toggleAdd();
+  renderProds();
+  toast('✓ Produto adicionado!', 'ok');
+}
+
+// ════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════
+function initAdmin() {
+  loadConfig();
+  updateStats();
+  renderLog();
+  startSessTimer();
+}
+
+// Auto-restore session
+if (isSessValid()) {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('admin-screen').style.display = 'block';
+  initAdmin();
+} else {
+  // Check if locked on load
+  if (isLocked()) showLocked();
+}
+</script>
+</body>
+</html>
