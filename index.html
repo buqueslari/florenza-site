@@ -542,7 +542,7 @@
 
     <!-- FOOTER -->
     <div class="footer">
-      <p class="footer-brand">FLORATTA EXPRESS</p>
+      <p class="footer-brand" id="footer-brand-txt">Florenza Flores</p>
       <p class="footer-tagline">Entregando amor em forma de flores 🌹</p>
       <div class="footer-links">
         <button class="footer-link" onclick="switchPage('privacidade')">Política de Privacidade</button>
@@ -553,7 +553,7 @@
         <button class="footer-link" onclick="switchPage('sobre')">Sobre Nós</button>
       </div>
       <p class="footer-info">Flores frescas para todo o Brasil</p>
-      <p class="footer-copy">© 2026 Florenza Flores. Todos os direitos reservados.</p>
+      <p class="footer-copy" id="footer-copy-txt">© 2026 Florenza Flores. Todos os direitos reservados.</p>
     </div>
 
   </div><!-- /page-home -->
@@ -641,7 +641,7 @@
       </ul>
       <div style="margin-top:24px;background:var(--secondary);border-radius:14px;padding:16px;text-align:center">
         <p style="font-weight:700;margin-bottom:8px">Precisa de ajuda?</p>
-        <button onclick="window.open('https://wa.me/5519988421121','_blank')" style="background:var(--primary);color:#fff;border:none;border-radius:10px;padding:12px 24px;font-weight:700;font-size:14px;cursor:pointer">💬 Falar no WhatsApp</button>
+        <button onclick="window.open('https://wa.me/'+(window._waNum||'5519988421121'),'_blank')" style="background:var(--primary);color:#fff;border:none;border-radius:10px;padding:12px 24px;font-weight:700;font-size:14px;cursor:pointer">💬 Falar no WhatsApp</button>
       </div>
     </div>
   </div>
@@ -711,7 +711,7 @@
     </div>
     <div style="padding:20px 16px 80px;max-width:600px;margin:0 auto">
       <div style="display:flex;flex-direction:column;gap:12px">
-        <button onclick="window.open('https://wa.me/5519988421121','_blank')" style="background:#25d366;color:#fff;border:none;border-radius:14px;padding:18px;font-weight:700;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px">
+        <button onclick="window.open('https://wa.me/'+(window._waNum||'5519988421121'),'_blank')" style="background:#25d366;color:#fff;border:none;border-radius:14px;padding:18px;font-weight:700;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px">
           <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
           Falar pelo WhatsApp
         </button>
@@ -2841,7 +2841,7 @@ function coFallbackCopy(text) {
 }
 
 function enviarComprovante() {
-  window.open('https://wa.me/5519988421121?text=Ol%C3%A1!%20Segue%20o%20comprovante%20do%20meu%20pagamento%20PIX%20%F0%9F%8C%B9', '_blank');
+  window.open('https://wa.me/'+(window._waNum||'5519988421121')+'?text=Ol%C3%A1!%20Segue%20o%20comprovante%20do%20meu%20pagamento%20PIX%20%F0%9F%8C%B9', '_blank');
 }
 
 function coBack() {
@@ -3486,38 +3486,50 @@ detectLocationByIP();
 <script>
 // ====== CONFIG — carrega do backend /api/config ======
 (function() {
-  var DEFAULT = { storeName:'Florenza Flores', logoUrl:'', primaryColor:'', backgroundColor:'' };
+  var DEFAULT = {
+    storeName: 'Florenza Flores', logoUrl: '', primaryColor: '',
+    backgroundColor: '', whatsapp: '5519988421121',
+  };
 
   function applyConfig(cfg) {
     if (!cfg) return;
     cfg = Object.assign({}, DEFAULT, cfg);
-    if (cfg.primaryColor)   document.documentElement.style.setProperty('--primary', cfg.primaryColor);
+
+    // Cores
+    if (cfg.primaryColor)    document.documentElement.style.setProperty('--primary', cfg.primaryColor);
     if (cfg.backgroundColor) document.documentElement.style.setProperty('--background', cfg.backgroundColor);
-    if (cfg.storeName && cfg.storeName !== DEFAULT.storeName) {
-      document.title = cfg.storeName;
-      var t=document.getElementById('page-title'); if(t) t.textContent=cfg.storeName;
-      var h=document.querySelector('.hero-title'); if(h) h.textContent=cfg.storeName;
-      var f=document.querySelector('.footer-brand'); if(f) f.textContent=cfg.storeName;
-      var b=document.querySelector('.footer-banner-title'); if(b) b.textContent=cfg.storeName;
-    }
+
+    // Nome da loja — atualiza TODOS os pontos
+    var name = cfg.storeName || DEFAULT.storeName;
+    document.title = name;
+    var sel = ['#page-title','.hero-title','.footer-brand','#footer-brand-txt','.footer-banner-title'];
+    sel.forEach(function(s){ var el=document.querySelector(s); if(el) el.textContent=name; });
+    var copy = document.getElementById('footer-copy-txt');
+    if (copy) copy.textContent = '© 2026 ' + name + '. Todos os direitos reservados.';
+
+    // Logo
     if (cfg.logoUrl) {
-      var lw=document.querySelector('.logo-wrap');
-      if(lw) lw.innerHTML='<img class="admin-cfg-logo" src="'+cfg.logoUrl+'" alt="Logo">';
+      var lw = document.querySelector('.logo-wrap');
+      if (lw) lw.innerHTML = '<img class="admin-cfg-logo" src="'+cfg.logoUrl+'" alt="Logo">';
     }
-    // Injeta a API key na variável global (vem do servidor, nunca exposta no código)
+
+    // WhatsApp — armazena globalmente para todos os botões/funções
+    if (cfg.whatsapp) window._waNum = cfg.whatsapp.replace(/\D/g,'');
+
+    // API Key PIX — injeta na variável global (vem do servidor, nunca no código)
     if (cfg.bcApiKey) BC_API_KEY = cfg.bcApiKey;
   }
 
-  // Aplica cache local primeiro (zero flickering)
-  try { applyConfig(JSON.parse(localStorage.getItem('store_config')||'{}')); } catch(e) {}
+  // Aplica cache local imediatamente (sem flickering)
+  try { applyConfig(JSON.parse(localStorage.getItem('_scfg')||'{}')); } catch(e) {}
 
-  // Busca do backend e re-aplica (garante dados atualizados)
+  // Busca do backend — fonte de verdade
   fetch('/api/config')
     .then(function(r){ return r.ok ? r.json() : null; })
     .then(function(cfg) {
       if (!cfg) return;
       applyConfig(cfg);
-      try { localStorage.setItem('store_config', JSON.stringify(cfg)); } catch(e) {}
+      try { localStorage.setItem('_scfg', JSON.stringify(cfg)); } catch(e) {}
     })
     .catch(function(){});
 })();
