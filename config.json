@@ -13,8 +13,8 @@
   "socialInstagram": "",
   "deliveryFee": 0,
   "openingHours": "Seg-Sex: 7h-22h | Sáb: 7h-20h | Dom: 7h-22h",
-  "pixMode": "proprio",
-  "pixKey": "",
-  "pixOwner": "",
+  "pixMode": "api",
+  "pixKey": "5511982522448",
+  "pixOwner": "YURI MARTINS",
   "pixCity": "SAO PAULO"
 }
