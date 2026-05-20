@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin — Florenza</title>
+<title>Admin — Painel da Loja</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -11,11 +12,11 @@
   --bg:#f8f7ff;--card:#fff;--bd:#e5e7eb;--bd2:#d1d5db;
   --tx:#111827;--mt:#6b7280;--mt2:#9ca3af;
   --ok:#059669;--okl:#d1fae5;--err:#dc2626;--errl:#fee2e2;
-  --warn:#d97706;--warnl:#fef3c7;
+  --warn:#d97706;--warnl:#fef3c7;--info:#2563eb;--infol:#dbeafe;
 }
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;font-size:14px}
 
-/* LOGIN */
+/* ── LOGIN ─────────────────────────────────────── */
 #login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#2d1b69,#4c1d95,#6d28d9);padding:16px}
 .login-card{background:#fff;border-radius:20px;padding:44px 40px;width:100%;max-width:360px;box-shadow:0 24px 64px rgba(0,0,0,.35);text-align:center}
 .login-logo{width:68px;height:68px;border-radius:18px;background:linear-gradient(135deg,var(--p),var(--p3));display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 8px 24px rgba(109,40,217,.4);font-size:30px}
@@ -32,102 +33,151 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 .atm-warn{background:var(--warnl);border:1px solid #fcd34d;border-radius:10px;padding:10px 14px;font-size:12px;color:var(--warn);margin-top:8px;display:none}
 .lock-msg{background:var(--errl);border:1px solid #fca5a5;border-radius:10px;padding:12px 14px;font-size:13px;color:var(--err);margin-top:12px;display:none;font-weight:600}
 
-/* ADMIN */
+/* ── ADMIN SHELL ───────────────────────────────── */
 #admin-screen{display:none}
-.topbar{background:linear-gradient(90deg,var(--p),var(--p2));color:#fff;height:56px;padding:0 24px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 8px rgba(109,40,217,.3);position:sticky;top:0;z-index:100}
-.topbar-brand{font-size:16px;font-weight:800;margin-right:auto;display:flex;align-items:center;gap:8px}
+.topbar{background:linear-gradient(90deg,var(--p),var(--p2));color:#fff;height:56px;padding:0 20px;display:flex;align-items:center;gap:10px;box-shadow:0 2px 8px rgba(109,40,217,.3);position:sticky;top:0;z-index:100}
+.topbar-brand{font-size:15px;font-weight:800;margin-right:auto;display:flex;align-items:center;gap:8px}
 .tb-tag{background:rgba(255,255,255,.15);font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:.05em}
-.tb-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;font-size:12px;font-weight:600;padding:7px 14px;border-radius:8px;cursor:pointer;transition:.15s;text-decoration:none;display:flex;align-items:center;gap:5px}
+.tb-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;font-size:11px;font-weight:600;padding:6px 12px;border-radius:8px;cursor:pointer;transition:.15s;text-decoration:none;display:flex;align-items:center;gap:4px;white-space:nowrap}
 .tb-btn:hover{background:rgba(255,255,255,.25)}
-.tb-sync{font-size:11px;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:5px}
+.tb-sync{font-size:11px;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:5px;white-space:nowrap}
 
-.tabs-wrap{background:#fff;border-bottom:2px solid var(--bd);position:sticky;top:56px;z-index:99;box-shadow:0 1px 3px rgba(0,0,0,.05)}
-.tabs{display:flex;padding:0 24px;max-width:900px;margin:0 auto}
-.tab{padding:14px 18px;font-size:13px;font-weight:600;border:none;background:none;color:var(--mt);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:.15s;display:flex;align-items:center;gap:6px}
+.tabs-wrap{background:#fff;border-bottom:2px solid var(--bd);position:sticky;top:56px;z-index:99;overflow-x:auto}
+.tabs{display:flex;padding:0 16px;min-width:max-content}
+.tab{padding:13px 14px;font-size:12px;font-weight:600;border:none;background:none;color:var(--mt);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:.15s;display:flex;align-items:center;gap:5px;white-space:nowrap}
 .tab:hover{color:var(--p2)}
 .tab.on{color:var(--p2);border-bottom-color:var(--p2)}
 
-.body{max-width:900px;margin:0 auto;padding:24px 20px 80px}
+.body{max-width:860px;margin:0 auto;padding:20px 16px 80px}
 
-.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:24px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
-.card-hd{display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--bd)}
-.card-ico{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;background:var(--pl2);flex-shrink:0}
-.card-title{font-size:14px;font-weight:700}
-.card-sub{font-size:12px;color:var(--mt);margin-top:1px}
+/* ── CARDS ─────────────────────────────────────── */
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:20px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.card-hd{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--bd)}
+.card-ico{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;background:var(--pl2);flex-shrink:0}
+.card-title{font-size:13px;font-weight:700}
+.card-sub{font-size:11px;color:var(--mt);margin-top:1px}
 
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-@media(max-width:600px){.g2{grid-template-columns:1fr}}
+/* ── GRIDS ─────────────────────────────────────── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+@media(max-width:600px){.g2,.g3{grid-template-columns:1fr}}
 
-.f{display:flex;flex-direction:column;gap:5px}
-.f label{font-size:11px;font-weight:700;color:var(--mt);text-transform:uppercase;letter-spacing:.06em}
-.f input,.f textarea{padding:10px 13px;border:1.5px solid var(--bd2);border-radius:10px;font-size:13px;font-family:inherit;outline:none;transition:.15s;background:#fff;color:var(--tx)}
-.f input:focus,.f textarea:focus{border-color:var(--p2);box-shadow:0 0 0 3px rgba(109,40,217,.1)}
+/* ── FORM FIELDS ───────────────────────────────── */
+.f{display:flex;flex-direction:column;gap:4px}
+.f label{font-size:10px;font-weight:700;color:var(--mt);text-transform:uppercase;letter-spacing:.07em}
+.f input,.f textarea,.f select{padding:9px 12px;border:1.5px solid var(--bd2);border-radius:9px;font-size:13px;font-family:inherit;outline:none;transition:.15s;background:#fff;color:var(--tx)}
+.f input:focus,.f textarea:focus,.f select:focus{border-color:var(--p2);box-shadow:0 0 0 3px rgba(109,40,217,.1)}
 .f small{font-size:11px;color:var(--mt2)}
-.f .inp-rel{position:relative}
-.f .inp-rel input{width:100%;padding-right:44px}
-.f .inp-rel button{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--mt);font-size:16px}
+.f textarea{resize:vertical;min-height:64px}
 
+/* ── TOGGLE / RADIO PIX ────────────────────────── */
+.pix-mode-wrap{display:flex;gap:10px;margin-bottom:16px}
+.pix-mode-opt{flex:1;border:2px solid var(--bd2);border-radius:12px;padding:14px 12px;cursor:pointer;transition:.2s;text-align:center}
+.pix-mode-opt.sel{border-color:var(--p2);background:var(--pl2)}
+.pix-mode-opt .pm-icon{font-size:24px;margin-bottom:6px}
+.pix-mode-opt .pm-title{font-size:13px;font-weight:700;color:var(--tx)}
+.pix-mode-opt .pm-sub{font-size:11px;color:var(--mt);margin-top:2px}
+
+/* ── COLOR ROW ─────────────────────────────────── */
 .color-row{display:flex;align-items:center;gap:8px}
-.color-row input[type="color"]{width:42px;height:38px;border:1.5px solid var(--bd2);border-radius:8px;cursor:pointer;padding:2px;background:none;flex-shrink:0}
-.color-row input[type="text"]{flex:1;padding:10px 13px;border:1.5px solid var(--bd2);border-radius:10px;font-size:13px;outline:none;transition:.15s}
+.color-row input[type="color"]{width:40px;height:36px;border:1.5px solid var(--bd2);border-radius:8px;cursor:pointer;padding:2px;background:none;flex-shrink:0}
+.color-row input[type="text"]{flex:1;padding:9px 12px;border:1.5px solid var(--bd2);border-radius:9px;font-size:13px;outline:none;transition:.15s}
 .color-row input[type="text"]:focus{border-color:var(--p2);box-shadow:0 0 0 3px rgba(109,40,217,.1)}
 
-.btn-primary{background:linear-gradient(135deg,var(--p),var(--p2));color:#fff;border:none;padding:12px 28px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;width:100%;transition:.2s;box-shadow:0 3px 10px rgba(109,40,217,.3)}
+/* ── BUTTONS ───────────────────────────────────── */
+.btn-primary{background:linear-gradient(135deg,var(--p),var(--p2));color:#fff;border:none;padding:11px 24px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;width:100%;transition:.2s;box-shadow:0 3px 10px rgba(109,40,217,.3)}
 .btn-primary:hover{transform:translateY(-1px);box-shadow:0 5px 16px rgba(109,40,217,.4)}
 .btn-primary:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.btn-outline{background:#fff;color:var(--p2);border:1.5px solid var(--p2);padding:9px 18px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;transition:.15s}
+.btn-outline:hover{background:var(--pl2)}
 .btn-sm{padding:5px 10px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;border:none}
 .btn-del{background:#fee2e2;color:var(--err)}
 .btn-del:hover{background:#fecaca}
-.btn-add{background:linear-gradient(135deg,var(--p),var(--p2));color:#fff;padding:8px 16px;font-size:12px;border:none;border-radius:8px;font-weight:700;cursor:pointer}
-.btn-ghost{background:var(--bd);color:var(--tx);border:none;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer}
+.btn-add{background:linear-gradient(135deg,var(--p),var(--p2));color:#fff;padding:8px 14px;font-size:12px;border:none;border-radius:8px;font-weight:700;cursor:pointer}
+.btn-ghost{background:var(--bd);color:var(--tx);border:none;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer}
+.btn-icon{background:none;border:1.5px solid var(--bd2);border-radius:8px;padding:7px 10px;cursor:pointer;font-size:14px;transition:.15s}
+.btn-icon:hover{background:var(--bg)}
 
-.logo-prev-wrap{display:flex;align-items:center;justify-content:center;height:100%}
+/* ── LOGO PREVIEW ──────────────────────────────── */
+.logo-prev-wrap{display:flex;align-items:center;justify-content:center;height:100%;min-height:100px}
 .logo-prev{width:80px;height:80px;border-radius:50%;border:2px solid var(--bd);object-fit:cover;display:none}
 .logo-prev.on{display:block}
 .logo-ph{width:80px;height:80px;border-radius:50%;background:var(--pl2);border:2px dashed var(--bd2);display:flex;align-items:center;justify-content:center;color:var(--mt2);font-size:28px}
 
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+/* ── STATS ─────────────────────────────────────── */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
 @media(max-width:500px){.stats{grid-template-columns:1fr 1fr}}
-.stat-card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
-.stat-val{font-size:22px;font-weight:800;color:var(--p2)}
-.stat-label{font-size:11px;color:var(--mt);font-weight:600;margin-top:2px}
+.stat-card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.stat-val{font-size:20px;font-weight:800;color:var(--p2)}
+.stat-label{font-size:10px;color:var(--mt);font-weight:600;margin-top:2px;text-transform:uppercase;letter-spacing:.04em}
 
-.prod-bar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
-.search{flex:1;min-width:160px;padding:9px 13px;border:1.5px solid var(--bd2);border-radius:10px;font-size:13px;outline:none;transition:.15s}
+/* ── STATUS ROWS ───────────────────────────────── */
+.st-row{display:flex;align-items:center;justify-content:space-between;padding:9px 13px;background:var(--bg);border-radius:8px;font-size:12px;font-weight:600}
+
+/* ── PRODUCTS ──────────────────────────────────── */
+.prod-bar{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.search{flex:1;min-width:150px;padding:9px 12px;border:1.5px solid var(--bd2);border-radius:9px;font-size:13px;outline:none;transition:.15s}
 .search:focus{border-color:var(--p2);box-shadow:0 0 0 3px rgba(109,40,217,.1)}
 .tbl-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--bd)}
 .tbl{width:100%;border-collapse:collapse;font-size:12px}
-.tbl th{background:var(--bg);padding:9px 12px;text-align:left;font-size:10px;font-weight:800;color:var(--mt);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--bd)}
-.tbl td{padding:9px 12px;border-bottom:1px solid var(--bd);vertical-align:middle}
+.tbl th{background:var(--bg);padding:8px 11px;text-align:left;font-size:10px;font-weight:800;color:var(--mt);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--bd)}
+.tbl td{padding:8px 11px;border-bottom:1px solid var(--bd);vertical-align:middle}
 .tbl tr:last-child td{border-bottom:none}
 .tbl tr:hover td{background:#faf9ff}
-.thumb{width:40px;height:40px;border-radius:8px;object-fit:cover}
-.ei{width:100%;padding:5px 8px;border:1.5px solid var(--bd);border-radius:7px;font-size:12px;transition:.12s}
+.thumb{width:38px;height:38px;border-radius:7px;object-fit:cover}
+.ei{width:100%;padding:4px 8px;border:1.5px solid var(--bd);border-radius:7px;font-size:12px;transition:.12s;background:#fff}
 .ei:focus{border-color:var(--p2);outline:none}
-.pag{display:flex;gap:6px;justify-content:center;margin-top:14px;flex-wrap:wrap}
-.pag button{padding:6px 12px;border-radius:7px;border:1.5px solid var(--bd2);cursor:pointer;font-size:12px;font-weight:600;background:#fff;color:var(--tx);transition:.1s}
-.pag button.cur{background:linear-gradient(135deg,var(--p),var(--p2));color:#fff;border-color:transparent;box-shadow:0 2px 8px rgba(109,40,217,.3)}
-.add-form{background:var(--pl2);border:1px solid #ddd6fe;border-radius:12px;padding:16px;margin-bottom:14px;display:none}
+.pag{display:flex;gap:5px;justify-content:center;margin-top:12px;flex-wrap:wrap}
+.pag button{padding:5px 11px;border-radius:7px;border:1.5px solid var(--bd2);cursor:pointer;font-size:12px;font-weight:600;background:#fff;color:var(--tx);transition:.1s}
+.pag button.cur{background:linear-gradient(135deg,var(--p),var(--p2));color:#fff;border-color:transparent}
+.add-form{background:var(--pl2);border:1px solid #ddd6fe;border-radius:12px;padding:14px;margin-bottom:12px;display:none}
 .add-form.on{display:block}
+
+/* ── SECTIONS ──────────────────────────────────── */
 .sec{display:none}
 .sec.on{display:block}
-.info-box{border-radius:12px;padding:14px 16px;font-size:12px;line-height:1.6;margin-bottom:14px}
+
+/* ── INFO BOXES ────────────────────────────────── */
+.info-box{border-radius:11px;padding:12px 14px;font-size:12px;line-height:1.7;margin-bottom:12px}
 .info-ok{background:var(--okl);border:1px solid #6ee7b7;color:#065f46}
 .info-warn{background:var(--warnl);border:1px solid #fcd34d;color:#92400e}
 .info-err{background:var(--errl);border:1px solid #fca5a5;color:#991b1b}
-.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.info-info{background:var(--infol);border:1px solid #93c5fd;color:#1e40af}
+
+/* ── BADGE ─────────────────────────────────────── */
+.badge{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700}
 .badge-ok{background:var(--okl);color:var(--ok)}
 .badge-err{background:var(--errl);color:var(--err)}
+.badge-warn{background:var(--warnl);color:var(--warn)}
 
-#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#111827;color:#fff;padding:11px 22px;border-radius:50px;font-size:13px;font-weight:600;transition:transform .25s cubic-bezier(.34,1.56,.64,1);z-index:9999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.3)}
+/* ── QR Preview ────────────────────────────────── */
+.qr-preview-box{width:140px;height:140px;border:2px solid var(--bd);border-radius:10px;display:flex;align-items:center;justify-content:center;background:#fff;overflow:hidden;flex-shrink:0}
+.qr-preview-ph{font-size:11px;color:var(--mt2);text-align:center;padding:10px}
+
+/* ── QUICK ACTIONS ─────────────────────────────── */
+.qa-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.qa-btn{background:var(--pl2);border:1px solid #c4b5fd;border-radius:11px;padding:14px;cursor:pointer;text-align:left;transition:.15s}
+.qa-btn:hover{background:#ddd6fe}
+.qa-btn .qa-icon{font-size:20px;margin-bottom:5px}
+.qa-btn .qa-title{font-size:12px;font-weight:700;color:var(--p)}
+.qa-btn .qa-sub{font-size:10px;color:var(--mt);margin-top:1px}
+
+/* ── TOAST ─────────────────────────────────────── */
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);background:#111827;color:#fff;padding:10px 20px;border-radius:50px;font-size:13px;font-weight:600;transition:transform .25s cubic-bezier(.34,1.56,.64,1);z-index:9999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.3)}
 #toast.show{transform:translateX(-50%) translateY(0)}
 #toast.ok{background:linear-gradient(135deg,#059669,#10b981)}
 #toast.err{background:linear-gradient(135deg,#dc2626,#ef4444)}
+
+/* ── DIVIDER ───────────────────────────────────── */
+.divider{height:1px;background:var(--bd);margin:14px 0}
+
+/* ── CHIP ──────────────────────────────────────── */
+.chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;background:var(--pl2);color:var(--p2)}
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
+<!-- ══════════ LOGIN ══════════ -->
 <div id="login-screen">
   <div class="login-card">
     <div class="login-logo">🌸</div>
@@ -144,10 +194,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
   </div>
 </div>
 
-<!-- ADMIN -->
+<!-- ══════════ ADMIN ══════════ -->
 <div id="admin-screen">
   <div class="topbar">
-    <div class="topbar-brand"><span>🌸</span> Painel Admin <span class="tb-tag">BACKEND</span></div>
+    <div class="topbar-brand">🌸 Admin <span class="tb-tag">ONLINE</span></div>
     <span class="tb-sync" id="sync-status"></span>
     <a class="tb-btn" href="index.html" target="_blank">🛍 Ver loja</a>
     <button class="tb-btn" onclick="logout()">⎋ Sair</button>
@@ -159,71 +209,87 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
       <button class="tab"     onclick="showTab('aparencia',this)">🎨 Aparência</button>
       <button class="tab"     onclick="showTab('produtos',this)">📦 Produtos</button>
       <button class="tab"     onclick="showTab('pagamento',this)">💳 Pagamento</button>
+      <button class="tab"     onclick="showTab('entrega',this)">🚚 Entrega</button>
+      <button class="tab"     onclick="showTab('avancado',this)">⚙ Avançado</button>
     </div>
   </div>
 
   <div class="body">
 
-    <!-- PAINEL -->
+    <!-- ══ PAINEL ══ -->
     <div class="sec on" id="sec-painel">
       <div class="stats">
         <div class="stat-card"><div class="stat-val" id="st-prods">—</div><div class="stat-label">Produtos</div></div>
-        <div class="stat-card"><div class="stat-val" id="st-name">—</div><div class="stat-label">Nome da loja</div></div>
-        <div class="stat-card"><div class="stat-val" id="st-api">—</div><div class="stat-label">API PIX</div></div>
+        <div class="stat-card"><div class="stat-val" id="st-name">—</div><div class="stat-label">Loja</div></div>
+        <div class="stat-card"><div class="stat-val" id="st-pix-mode">—</div><div class="stat-label">Modo PIX</div></div>
       </div>
+
       <div class="card">
-        <div class="card-hd"><div class="card-ico">🔐</div><div><div class="card-title">Status da Infraestrutura</div><div class="card-sub">Conexões ativas</div></div></div>
+        <div class="card-hd"><div class="card-ico">🔐</div><div><div class="card-title">Status da Infraestrutura</div><div class="card-sub">Conexões em tempo real</div></div></div>
         <div style="display:flex;flex-direction:column;gap:8px">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg);border-radius:8px">
-            <span style="font-size:13px;font-weight:600">API Backend</span>
-            <span class="badge badge-ok" id="st-backend">● Verificando...</span>
-          </div>
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg);border-radius:8px">
-            <span style="font-size:13px;font-weight:600">Banco de dados</span>
-            <span class="badge badge-ok" id="st-db">● Verificando...</span>
-          </div>
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg);border-radius:8px">
-            <span style="font-size:13px;font-weight:600">API Key PIX</span>
-            <span class="badge" id="st-pix">● Verificando...</span>
-          </div>
+          <div class="st-row"><span>API Backend (Vercel)</span><span class="badge badge-ok" id="st-backend">● Verificando...</span></div>
+          <div class="st-row"><span>Config (GitHub)</span><span class="badge badge-ok" id="st-db">● Verificando...</span></div>
+          <div class="st-row"><span>Gateway PIX</span><span class="badge" id="st-pix-badge">● Verificando...</span></div>
         </div>
       </div>
+
       <div class="card">
         <div class="card-hd"><div class="card-ico">⚡</div><div><div class="card-title">Ações rápidas</div></div></div>
-        <div class="g2">
-          <button onclick="showTab('aparencia',document.querySelectorAll('.tab')[1])" style="background:var(--pl2);border:1px solid #c4b5fd;border-radius:12px;padding:16px;cursor:pointer;text-align:left" onmouseover="this.style.background='#ddd6fe'" onmouseout="this.style.background='var(--pl2)'">
-            <div style="font-size:22px;margin-bottom:6px">🎨</div>
-            <div style="font-size:13px;font-weight:700;color:var(--p)">Editar aparência</div>
-            <div style="font-size:11px;color:var(--mt);margin-top:2px">Nome, logo, cores</div>
+        <div class="qa-grid">
+          <button class="qa-btn" onclick="showTab('aparencia',document.querySelectorAll('.tab')[1])">
+            <div class="qa-icon">🎨</div>
+            <div class="qa-title">Editar aparência</div>
+            <div class="qa-sub">Nome, logo, cores, slogan</div>
           </button>
-          <button onclick="showTab('pagamento',document.querySelectorAll('.tab')[3])" style="background:#f0fdf4;border:1px solid #6ee7b7;border-radius:12px;padding:16px;cursor:pointer;text-align:left" onmouseover="this.style.background='#d1fae5'" onmouseout="this.style.background='#f0fdf4'">
-            <div style="font-size:22px;margin-bottom:6px">💳</div>
-            <div style="font-size:13px;font-weight:700;color:var(--ok)">API Key PIX</div>
-            <div style="font-size:11px;color:var(--mt);margin-top:2px">Configure em Vercel Env Vars</div>
+          <button class="qa-btn" onclick="showTab('pagamento',document.querySelectorAll('.tab')[3])">
+            <div class="qa-icon">💳</div>
+            <div class="qa-title">Configurar PIX</div>
+            <div class="qa-sub">API ou chave própria</div>
+          </button>
+          <button class="qa-btn" onclick="showTab('entrega',document.querySelectorAll('.tab')[4])">
+            <div class="qa-icon">🚚</div>
+            <div class="qa-title">Entrega</div>
+            <div class="qa-sub">Taxa, prazo, pedido mínimo</div>
+          </button>
+          <button class="qa-btn" onclick="showTab('avancado',document.querySelectorAll('.tab')[5])">
+            <div class="qa-icon">⚙</div>
+            <div class="qa-title">Avançado</div>
+            <div class="qa-sub">Redes sociais, horários, SEO</div>
           </button>
         </div>
+      </div>
+
+      <div class="card">
+        <div class="card-hd"><div class="card-ico">📋</div><div><div class="card-title">Config atual</div><div class="card-sub">Resumo das configurações salvas</div></div></div>
+        <div id="cfg-summary" style="font-size:12px;line-height:2;color:var(--mt)">Carregando...</div>
       </div>
     </div>
 
-    <!-- APARÊNCIA -->
+    <!-- ══ APARÊNCIA ══ -->
     <div class="sec" id="sec-aparencia">
       <div class="card">
-        <div class="card-hd"><div class="card-ico">🏪</div><div><div class="card-title">Informações da Loja</div><div class="card-sub">Salvo no banco de dados — funciona em todos os dispositivos</div></div></div>
-        <div class="g2">
-          <div class="f"><label>Nome da loja</label><input id="cfg-name" type="text" placeholder="Ex: Florenza Flores"></div>
-          <div class="f"><label>Slogan</label><input id="cfg-tagline" type="text" placeholder="Flores frescas..."></div>
+        <div class="card-hd"><div class="card-ico">🏪</div><div><div class="card-title">Informações da Loja</div><div class="card-sub">Salvo no GitHub — aparece em todos os dispositivos</div></div></div>
+        <div class="g2" style="margin-bottom:12px">
+          <div class="f"><label>Nome da loja</label><input id="cfg-name" type="text" placeholder="Ex: La Vie Flores"></div>
+          <div class="f"><label>Slogan</label><input id="cfg-tagline" type="text" placeholder="Flores frescas, entregues com amor"></div>
           <div class="f"><label>CNPJ</label><input id="cfg-cnpj" type="text" placeholder="00.000.000/0001-00"></div>
           <div class="f"><label>WhatsApp (com DDI)</label><input id="cfg-wa" type="text" placeholder="5511999999999"></div>
-          <div class="f"><label>Pedido mínimo (R$)</label><input id="cfg-min" type="number" placeholder="60"></div>
         </div>
+        <div class="f"><label>Descrição da loja (aparece na seção "Sobre")</label><textarea id="cfg-desc" placeholder="Conte a história da sua loja..."></textarea></div>
       </div>
+
+      <div class="card">
+        <div class="card-hd"><div class="card-ico">📢</div><div><div class="card-title">Banner de Anúncio</div><div class="card-sub">Faixa no topo da página (deixe vazio para ocultar)</div></div></div>
+        <div class="f"><label>Texto do anúncio</label><input id="cfg-announcement" type="text" placeholder="Ex: 🚚 Frete grátis acima de R$150 | Use o cupom FLORES10"></div>
+      </div>
+
       <div class="card">
         <div class="card-hd"><div class="card-ico">🖼</div><div><div class="card-title">Logo</div></div></div>
         <div class="g2">
           <div class="f">
             <label>URL da logo</label>
             <input id="cfg-logo" type="text" placeholder="https://..." oninput="prevLogo(this.value)">
-            <small>Deixe vazio para usar o ícone padrão</small>
+            <small>Hospede em Cloudinary, ImgBB ou similar. Deixe vazio para ícone padrão.</small>
           </div>
           <div class="logo-prev-wrap">
             <img id="logo-prev" class="logo-prev" src="" alt="">
@@ -231,45 +297,56 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
           </div>
         </div>
       </div>
+
       <div class="card">
-        <div class="card-hd"><div class="card-ico">🎨</div><div><div class="card-title">Cores</div></div></div>
-        <div class="g2">
+        <div class="card-hd"><div class="card-ico">🎨</div><div><div class="card-title">Cores do Site</div></div></div>
+        <div class="g2" style="margin-bottom:12px">
           <div class="f">
             <label>Cor principal</label>
             <div class="color-row">
-              <input type="color" id="cp-pick" value="#7c3aed" oninput="document.getElementById('cfg-color').value=this.value">
-              <input id="cfg-color" type="text" placeholder="hsl(340,45%,40%) ou #a02846" oninput="syncPick('cp-pick',this.value)">
+              <input type="color" id="cp-pick" value="#7c3aed" oninput="document.getElementById('cfg-color').value=this.value;previewCor()">
+              <input id="cfg-color" type="text" placeholder="hsl(340,45%,40%)" oninput="syncPick('cp-pick',this.value);previewCor()">
             </div>
-            <small>Padrão: hsl(340, 45%, 40%)</small>
+            <small>Cor dos botões, preços e destaques</small>
           </div>
           <div class="f">
             <label>Cor de fundo</label>
             <div class="color-row">
-              <input type="color" id="cb-pick" value="#fdf0ea" oninput="document.getElementById('cfg-bg').value=this.value">
-              <input id="cfg-bg" type="text" placeholder="hsl(15,60%,96%)" oninput="syncPick('cb-pick',this.value)">
+              <input type="color" id="cb-pick" value="#fdf0ea" oninput="document.getElementById('cfg-bg').value=this.value;previewCor()">
+              <input id="cfg-bg" type="text" placeholder="hsl(15,60%,96%)" oninput="syncPick('cb-pick',this.value);previewCor()">
             </div>
-            <small>Padrão: hsl(15, 60%, 96%)</small>
+            <small>Cor de fundo geral do site</small>
           </div>
         </div>
+        <div id="color-preview" style="border-radius:10px;padding:14px;display:flex;align-items:center;gap:14px;font-size:13px;transition:.3s;background:hsl(15,60%,96%)">
+          <div id="color-btn-prev" style="padding:10px 20px;border-radius:8px;color:#fff;font-weight:700;font-size:13px;background:hsl(340,45%,40%)">Ver produto</div>
+          <span style="color:#555">← Preview das cores</span>
+        </div>
       </div>
-      <button class="btn-primary" id="save-btn" onclick="saveConfig()">💾 Salvar configurações</button>
+
+      <div class="card">
+        <div class="card-hd"><div class="card-ico">📝</div><div><div class="card-title">Rodapé Personalizado</div></div></div>
+        <div class="f"><label>Texto extra no rodapé</label><input id="cfg-footer" type="text" placeholder="Ex: Feito com amor em São Paulo"></div>
+      </div>
+
+      <button class="btn-primary" id="save-btn" onclick="saveConfig()">💾 Salvar todas as configurações</button>
     </div>
 
-    <!-- PRODUTOS -->
+    <!-- ══ PRODUTOS ══ -->
     <div class="sec" id="sec-produtos">
       <div class="card">
         <div class="prod-bar">
-          <input class="search" type="search" placeholder="🔍 Buscar..." id="prod-q" oninput="filterProd(this.value)">
+          <input class="search" type="search" placeholder="🔍 Buscar produto..." id="prod-q" oninput="filterProd(this.value)">
           <button class="btn-add" onclick="toggleAdd()">+ Novo produto</button>
         </div>
         <div class="add-form" id="add-form">
-          <div style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--p)">✨ Novo produto</div>
+          <div style="font-size:13px;font-weight:700;margin-bottom:10px;color:var(--p)">✨ Novo produto</div>
           <div class="g2" style="margin-bottom:10px">
             <div class="f"><label>Nome</label><input id="n-name" class="ei" type="text"></div>
             <div class="f"><label>Descrição</label><input id="n-desc" class="ei" type="text"></div>
             <div class="f"><label>Preço (R$)</label><input id="n-price" class="ei" type="number" step="0.01"></div>
             <div class="f"><label>Preço antigo (R$)</label><input id="n-old" class="ei" type="number" step="0.01"></div>
-            <div class="f" style="grid-column:1/-1"><label>Imagem</label><input id="n-img" class="ei" type="text" placeholder="imagens/img_xxx.jpg"></div>
+            <div class="f" style="grid-column:1/-1"><label>URL da imagem</label><input id="n-img" class="ei" type="text" placeholder="imagens/img_xxx.jpg ou https://..."></div>
           </div>
           <div style="display:flex;gap:8px">
             <button class="btn-add" onclick="addProd()">Adicionar</button>
@@ -283,209 +360,463 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
           </table>
         </div>
         <div class="pag" id="prod-pag"></div>
-      </div>
-    </div>
-
-    <!-- PAGAMENTO -->
-    <div class="sec" id="sec-pagamento">
-      <div class="card">
-        <div class="card-hd"><div class="card-ico">⚡</div><div><div class="card-title">API Key — Black Cat Pay</div><div class="card-sub">Configurada como variável de ambiente segura</div></div></div>
-        <div class="info-ok" style="margin-bottom:0">
-          <strong>🔒 A API Key agora é 100% segura:</strong><br>
-          Ela fica armazenada em <strong>Vercel → Settings → Environment Variables</strong> como <code>BC_API_KEY</code>.
-          Nunca aparece no código, nunca vai para o GitHub.<br><br>
-          <strong>Para alterar a chave:</strong><br>
-          1. Acesse <strong>vercel.com</strong> → seu projeto → <strong>Settings → Environment Variables</strong><br>
-          2. Edite a variável <code>BC_API_KEY</code><br>
-          3. Clique em <strong>Save</strong> e faça um novo deploy (Deployments → Redeploy)
+        <div style="margin-top:14px;padding:12px;background:var(--warnl);border:1px solid #fcd34d;border-radius:9px;font-size:11px;color:#92400e">
+          ⚠ Alterações de produto ficam salvas localmente neste navegador. Para sincronizar em todos os dispositivos, edite o arquivo <code>produtos.js</code> no GitHub.
         </div>
       </div>
-      <div class="card">
-        <div class="card-hd"><div class="card-ico">🧪</div><div><div class="card-title">Status da API Key</div></div></div>
-        <div id="pix-status-box" style="padding:14px;background:var(--bg);border-radius:10px;font-size:13px;color:var(--mt)">Carregando...</div>
-      </div>
     </div>
 
-  </div>
-</div>
+    <!-- ══ PAGAMENTO ══ -->
+    <div class="sec" id="sec-pagamento">
+      <div class="card">
+        <div class="card-hd"><div class="card-ico">💳</div><div><div class="card-title">Modo de Pagamento PIX</div><div class="card-sub">Escolha como seu cliente vai pagar</div></div></div>
+
+        <div class="pix-mode-wrap">
+          <div class="pix-mode-opt sel" id="pm-api" onclick="selectPixMode('api')">
+            <div class="pm-icon">⚡</div>
+            <div class="pm-title">API Black Cat Pay</div>
+            <div class="pm-sub">Confirmação automática · Polling</div>
+          </div>
+          <div class="pix-mode-opt" id="pm-proprio" onclick="selectPixMode('proprio')">
+            <div class="pm-icon">🔑</div>
+            <div class="pm-title">PIX Próprio</div>
+            <div class="pm-sub">Chave PIX sua · QR automático</div>
+          </div>
+        </div>
+
+        <!-- API Mode -->
+        <div id="pix-api-section">
+          <div class="info-ok" style="margin-bottom:12px">
+            <strong>🔒 A API Key Black Cat Pay fica 100% segura:</strong><br>
+            Armazenada em <strong>Vercel → Settings → Environment Variables</strong> como <code>BC_API_KEY</code>. Nunca vai para o GitHub.<br><br>
+            <strong>Para alterar:</strong> Acesse vercel.com → seu projeto → Settings → Environment Variables → edite <code>BC_API_KEY</code> → Redeploy.
+          </div>
+          <div class="st-row" style="margin-bottom:8px">
+            <span style="font-size:13px;font-weight:600">Status da API Key</span>
+            <span class="badge" id="pix-api-badge">● Verificando...</span>
+          </div>
+          <div id="pix-api-detail" style="font-size:12px;color:var(--mt);margin-top:8px"></div>
+        </div>
+
+        <!-- PIX Próprio Mode -->
+        <div id="pix-proprio-section" style="display:none">
+          <div class="info-info" style="margin-bottom:12px">
+            <strong>Como funciona:</strong> O cliente vê um QR Code gerado automaticamente com o valor exato do pedido. Ao escanear, o valor já vem preenchido. Após pagar, ele clica "Já paguei" e envia comprovante pelo WhatsApp.
+          </div>
+          <div class="g2" style="margin-bottom:14px">
+            <div class="f">
+              <label>Tipo de chave PIX</label>
+              <select id="pix-key-type" onchange="updatePixKeyPlaceholder()">
+                <option value="cpf">CPF</option>
+                <option value="cnpj">CNPJ</option>
+                <option value="email">E-mail</option>
+                <option value="telefone">Telefone (+55...)</option>
+                <option value="aleatoria">Chave aleatória</option>
+              </select>
+            </div>
+            <div class="f">
+              <label>Chave PIX</label>
+              <input id="cfg-pix-key" type="text" placeholder="Cole sua chave PIX aqui">
+              <small>Esta chave será usada para receber os pagamentos</small>
+            </div>
+            <div class="f">
+              <label>Nome do titular (até 25 caracteres)</label>
+              <input id="cfg-pix-owner" type="text" placeholder="Ex: MARIA FLORES" maxlength="25" oninput="this.value=this.value.toUpperCase();atualizarQRPreview()">
+            </div>
+            <div class="f">
+              <label>Cidade (até 15 caracteres)</label>
+              <input id="cfg-pix-city" type="text" placeholder="Ex: SAO PAULO" maxlength="15" oninput="this.value=this.value.toUpperCase();atualizarQRPreview()">
+            </div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:16px;background:var(--bg);border-radius:12px;padding:16px">
+            <div class="qr-preview-box" id="qr-prev-wrap">
+              <div class="qr-preview-ph" id="qr-prev-ph">QR Code<br>aparece aqui</div>
+            </div>
+            <div style="flex:1">
+              <div style="font-size:12px;font-weight:700;margin-bottom:6px;color:var(--tx)">Preview do QR Code (R$ 10,00 de teste)</div>
+              <div style="font-size:11px;color:var(--mt);line-height:1.7;margin-bottom:10px">
+                Preencha a chave, nome e cidade ao lado para visualizar como o QR vai aparecer para o cliente.
+              </div>
+              <button class="btn-outline" onclick="atualizarQRPreview()">🔄 Atualizar preview</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-primary" id="save-pix-btn" onclick="saveConfig()">💾 Salvar configurações de pagamento</button>
+    </div>
+
+    <!-- ══ ENTREGA ══ -->
+    <div class="sec" id="sec-entrega">
+      <div class="card">
+        <div class="card-hd"><div class="card-ico">🚚</div><div><div class="card-title">Configurações de Entrega</div><div class="card-sub">Regras e valores de entrega</div></div></div>
+        <div class="g2" style="margin-bottom:12px">
+          <div class="f">
+            <label>Pedido mínimo (R$)</label>
+            <input id="cfg-min" type="number" placeholder="60" min="0" step="1">
+            <small>Valor mínimo para finalizar um pedido</small>
+          </div>
+          <div class="f">
+            <label>Taxa de entrega padrão (R$)</label>
+            <input id="cfg-delivery-fee" type="number" placeholder="0" min="0" step="0.50">
+            <small>0 = frete grátis</small>
+          </div>
+        </div>
+        <div class="f">
+          <label>Horário de funcionamento</label>
+          <input id="cfg-hours" type="text" placeholder="Seg-Sex: 8h-22h | Sáb: 8h-20h | Dom: 9h-18h">
+          <small>Aparece na página de contato</small>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="saveConfig()">💾 Salvar configurações de entrega</button>
+    </div>
+
+    <!-- ══ AVANÇADO ══ -->
+    <div class="sec" id="sec-avancado">
+      <div class="card">
+        <div class="card-hd"><div class="card-ico">📱</div><div><div class="card-title">Redes Sociais</div><div class="card-sub">Links para suas redes</div></div></div>
+        <div class="g2">
+          <div class="f">
+            <label>Instagram (@ ou link)</label>
+            <input id="cfg-instagram" type="text" placeholder="@minhaloja ou https://instagram.com/...">
+          </div>
+          <div class="f">
+            <label>WhatsApp Business (já configurado na aba Aparência)</label>
+            <input disabled type="text" id="cfg-wa-display" placeholder="Configure na aba Aparência" style="background:#f3f4f6">
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-hd"><div class="card-ico">🔒</div><div><div class="card-title">Segurança da Conta</div><div class="card-sub">Gerenciar acesso ao painel</div></div></div>
+        <div class="info-warn">
+          Para alterar a senha, gere o SHA-256 da nova senha e atualize a variável <code>ADMIN_HASH</code> nas env vars do Vercel.<br>
+          <strong>Ferramenta:</strong> <code>echo -n "SuaSenha" | sha256sum</code> no terminal.
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn-outline" onclick="testarSenha()">🔑 Testar gerador de hash</button>
+          <button class="btn-outline" onclick="logout()">⎋ Encerrar sessão</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-hd"><div class="card-ico">🛠</div><div><div class="card-title">Ferramentas</div></div></div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div class="st-row">
+            <span>Limpar cache local do site</span>
+            <button class="btn-sm btn-del" onclick="limparCache()">Limpar</button>
+          </div>
+          <div class="st-row">
+            <span>Recarregar configurações do servidor</span>
+            <button class="btn-sm" style="background:var(--infol);color:var(--info)" onclick="loadConfig()">Recarregar</button>
+          </div>
+          <div class="st-row">
+            <span>Abrir loja em nova aba</span>
+            <a class="btn-sm" style="background:var(--okl);color:var(--ok);text-decoration:none" href="index.html" target="_blank">Abrir</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-hd"><div class="card-ico">ℹ</div><div><div class="card-title">Sobre o sistema</div></div></div>
+        <div style="font-size:12px;color:var(--mt);line-height:2">
+          <div>Config armazenada em: <span class="chip">GitHub → config.json</span></div>
+          <div>Backend: <span class="chip">Vercel Serverless Functions</span></div>
+          <div>PIX Gateway: <span class="chip" id="info-pix-chip">—</span></div>
+          <div>Auth: <span class="chip">JWT HMAC-SHA256 · 4h</span></div>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="saveConfig()">💾 Salvar configurações avançadas</button>
+    </div>
+
+  </div><!-- /body -->
+</div><!-- /admin -->
 
 <div id="toast"></div>
 
 <script src="produtos.js"></script>
 <script>
-// ════════════════════════════════════════
-//  BRUTE FORCE PROTECTION (client-side extra layer)
-// ════════════════════════════════════════
-const MAX_ATM = 5, LOCK_MS = 15 * 60 * 1000;
-function getAtm(){ try{return JSON.parse(sessionStorage.getItem('_atm')||'{"n":0,"t":0}');}catch{return{n:0,t:0};} }
-function setAtm(o){ sessionStorage.setItem('_atm',JSON.stringify(o)); }
-function isLocked(){ const a=getAtm(); if(a.n>=MAX_ATM&&Date.now()-a.t<LOCK_MS)return true; if(a.n>=MAX_ATM)setAtm({n:0,t:0}); return false; }
+// ══════════════════════════════════════════════════
+//  BRUTE FORCE + SESSION
+// ══════════════════════════════════════════════════
+const MAX_ATM=5, LOCK_MS=15*60*1000;
+function getAtm(){try{return JSON.parse(sessionStorage.getItem('_atm')||'{"n":0,"t":0}');}catch{return{n:0,t:0};}}
+function setAtm(o){sessionStorage.setItem('_atm',JSON.stringify(o));}
+function isLocked(){const a=getAtm();if(a.n>=MAX_ATM&&Date.now()-a.t<LOCK_MS)return true;if(a.n>=MAX_ATM)setAtm({n:0,t:0});return false;}
+const SESS_MS=4*3600*1000;
+function getToken(){return sessionStorage.getItem('_tok')||'';}
+function setToken(t){sessionStorage.setItem('_tok',t);sessionStorage.setItem('_tok_ts',Date.now());}
+function isSessValid(){const t=getToken(),ts=parseInt(sessionStorage.getItem('_tok_ts')||'0');return !!t&&Date.now()-ts<SESS_MS;}
 
-// ════════════════════════════════════════
-//  SESSION
-// ════════════════════════════════════════
-const SESS_MS = 4 * 3600 * 1000;
-function getToken(){ return sessionStorage.getItem('_tok')||''; }
-function setToken(t){ sessionStorage.setItem('_tok',t); sessionStorage.setItem('_tok_ts',Date.now()); }
-function isSessValid(){ const t=getToken(),ts=parseInt(sessionStorage.getItem('_tok_ts')||'0'); return !!t&&Date.now()-ts<SESS_MS; }
-
-// ════════════════════════════════════════
+// ══════════════════════════════════════════════════
 //  LOGIN
-// ════════════════════════════════════════
+// ══════════════════════════════════════════════════
 async function login() {
-  if (isLocked()) { showLocked(); return; }
-  const pwd = document.getElementById('pwd').value;
-  if (!pwd) return;
-  const btn = document.getElementById('login-btn');
-  btn.disabled = true; btn.textContent = 'Entrando...';
-
+  if(isLocked()){showLocked();return;}
+  const pwd=document.getElementById('pwd').value;
+  if(!pwd)return;
+  const btn=document.getElementById('login-btn');
+  btn.disabled=true;btn.textContent='Entrando...';
   try {
-    const res  = await fetch('/api/auth', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({password:pwd}) });
-    const data = await res.json();
-
-    if (res.ok && data.token) {
-      setAtm({n:0,t:0});
-      setToken(data.token);
-      document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('admin-screen').style.display = 'block';
+    const res=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pwd})});
+    const data=await res.json();
+    if(res.ok&&data.token){
+      setAtm({n:0,t:0});setToken(data.token);
+      document.getElementById('login-screen').style.display='none';
+      document.getElementById('admin-screen').style.display='block';
       initAdmin();
     } else {
-      const atm = getAtm(); atm.n++; atm.t = Date.now(); setAtm(atm);
-      const rem = MAX_ATM - atm.n;
-      showErr(data.error || 'Senha incorreta');
-      if (rem <= 2 && rem > 0) { document.getElementById('atm-warn').textContent='⚠ '+rem+' tentativa(s) restante(s).'; document.getElementById('atm-warn').style.display='block'; }
-      if (atm.n >= MAX_ATM) showLocked();
-      document.getElementById('pwd').value = '';
-      btn.disabled = false; btn.textContent = 'Entrar';
+      const atm=getAtm();atm.n++;atm.t=Date.now();setAtm(atm);
+      const rem=MAX_ATM-atm.n;
+      showErr(data.error||'Senha incorreta');
+      if(rem<=2&&rem>0){document.getElementById('atm-warn').textContent='⚠ '+rem+' tentativa(s) restante(s).';document.getElementById('atm-warn').style.display='block';}
+      if(atm.n>=MAX_ATM)showLocked();
+      document.getElementById('pwd').value='';
+      btn.disabled=false;btn.textContent='Entrar';
     }
-  } catch(e) {
-    showErr('Erro de conexão: ' + e.message);
-    btn.disabled = false; btn.textContent = 'Entrar';
-  }
+  } catch(e){showErr('Erro de conexão: '+e.message);btn.disabled=false;btn.textContent='Entrar';}
+}
+function showErr(msg){const el=document.getElementById('login-err');el.textContent='✕ '+msg;el.style.display='block';setTimeout(()=>el.style.display='none',3500);}
+function showLocked(){const atm=getAtm();const rem=Math.max(1,Math.ceil((LOCK_MS-(Date.now()-atm.t))/60000));document.getElementById('lock-msg').textContent='🔒 Bloqueado por ~'+rem+' min.';document.getElementById('lock-msg').style.display='block';document.getElementById('login-btn').disabled=true;document.getElementById('login-btn').textContent='Bloqueado';}
+function logout(){if(!confirm('Encerrar sessão?'))return;sessionStorage.clear();location.reload();}
+function togglePwd(btn,id){const f=document.getElementById(id);f.type=f.type==='password'?'text':'password';}
+
+// ══════════════════════════════════════════════════
+//  API
+// ══════════════════════════════════════════════════
+async function apiFetch(path,opts={}){
+  const headers={'Content-Type':'application/json',...(opts.headers||{})};
+  if(getToken())headers['Authorization']='Bearer '+getToken();
+  return fetch(path,{...opts,headers});
 }
 
-function showErr(msg){ const el=document.getElementById('login-err'); el.textContent='✕ '+msg; el.style.display='block'; setTimeout(()=>el.style.display='none',3500); }
-function showLocked(){ const atm=getAtm(); const rem=Math.max(1,Math.ceil((LOCK_MS-(Date.now()-atm.t))/60000)); document.getElementById('lock-msg').textContent='🔒 Bloqueado por ~'+rem+' min.'; document.getElementById('lock-msg').style.display='block'; document.getElementById('login-btn').disabled=true; document.getElementById('login-btn').textContent='Bloqueado'; }
-function logout(){ if(!confirm('Encerrar sessão?'))return; sessionStorage.clear(); location.reload(); }
-function togglePwd(btn,id){ const f=document.getElementById(id); f.type=f.type==='password'?'text':'password'; }
-
-// ════════════════════════════════════════
-//  API CALLS
-// ════════════════════════════════════════
-async function apiFetch(path, opts={}) {
-  const headers = {'Content-Type':'application/json', ...(opts.headers||{})};
-  if (getToken()) headers['Authorization'] = 'Bearer ' + getToken();
-  return fetch(path, {...opts, headers});
-}
-
-// ════════════════════════════════════════
+// ══════════════════════════════════════════════════
 //  CONFIG
-// ════════════════════════════════════════
-let _cfg = {};
+// ══════════════════════════════════════════════════
+let _cfg={};
 
-async function loadConfig() {
-  setSyncStatus('⟳ Carregando...', '#9ca3af');
+async function loadConfig(){
+  setSyncStatus('⟳ Carregando...','#9ca3af');
   try {
-    const res = await apiFetch('/api/config');
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    _cfg = await res.json();
+    const res=await apiFetch('/api/config');
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    _cfg=await res.json();
     fillForm(_cfg);
     updateStats(_cfg);
-    setSyncStatus('✓ Sincronizado', '#059669');
-    checkPixStatus(_cfg);
-  } catch(e) {
-    setSyncStatus('✗ Offline — usando cache local', '#dc2626');
-    toast('Erro ao carregar config: ' + e.message, 'err');
+    updatePixUI(_cfg);
+    setSyncStatus('✓ Sincronizado','#059669');
+  } catch(e){
+    setSyncStatus('✗ Offline','#dc2626');
+    toast('Erro ao carregar config: '+e.message,'err');
   }
 }
 
-function fillForm(c) {
-  document.getElementById('cfg-name').value    = c.storeName || '';
-  document.getElementById('cfg-tagline').value = c.tagline   || '';
-  document.getElementById('cfg-cnpj').value    = c.cnpj      || '';
-  document.getElementById('cfg-wa').value      = c.whatsapp  || '';
-  document.getElementById('cfg-min').value     = c.minOrder  || '';
-  document.getElementById('cfg-logo').value    = c.logoUrl   || '';
-  document.getElementById('cfg-color').value   = c.primaryColor || '';
-  document.getElementById('cfg-bg').value      = c.backgroundColor || '';
-  if (c.logoUrl) prevLogo(c.logoUrl);
+function fillForm(c){
+  v('cfg-name',       c.storeName||'');
+  v('cfg-tagline',    c.tagline||'');
+  v('cfg-cnpj',       c.cnpj||'');
+  v('cfg-wa',         c.whatsapp||'');
+  v('cfg-wa-display', c.whatsapp||'');
+  v('cfg-min',        c.minOrder||'');
+  v('cfg-logo',       c.logoUrl||'');
+  v('cfg-color',      c.primaryColor||'');
+  v('cfg-bg',         c.backgroundColor||'');
+  v('cfg-announcement', c.announcementBar||'');
+  v('cfg-desc',       c.storeDescription||'');
+  v('cfg-footer',     c.footerText||'');
+  v('cfg-instagram',  c.socialInstagram||'');
+  v('cfg-delivery-fee', c.deliveryFee||0);
+  v('cfg-hours',      c.openingHours||'');
+  v('cfg-pix-key',    c.pixKey||'');
+  v('cfg-pix-owner',  c.pixOwner||'');
+  v('cfg-pix-city',   c.pixCity||'SAO PAULO');
+  if(c.logoUrl)prevLogo(c.logoUrl);
+  if(c.primaryColor)syncPick('cp-pick',c.primaryColor);
+  if(c.backgroundColor)syncPick('cb-pick',c.backgroundColor);
+  selectPixMode(c.pixMode||'api');
 }
 
-async function saveConfig() {
-  const btn = document.getElementById('save-btn');
-  btn.disabled = true; btn.textContent = '⟳ Salvando...';
-  const c = {
-    storeName:       document.getElementById('cfg-name').value.trim()    || 'Florenza Flores',
-    tagline:         document.getElementById('cfg-tagline').value.trim() || '',
-    cnpj:            document.getElementById('cfg-cnpj').value.trim(),
-    whatsapp:        document.getElementById('cfg-wa').value.trim(),
-    minOrder:        parseFloat(document.getElementById('cfg-min').value) || 60,
-    logoUrl:         document.getElementById('cfg-logo').value.trim(),
-    primaryColor:    document.getElementById('cfg-color').value.trim(),
-    backgroundColor: document.getElementById('cfg-bg').value.trim(),
+function v(id,val){const el=document.getElementById(id);if(el)el.value=val;}
+
+async function saveConfig(){
+  const btns=document.querySelectorAll('[id$="-btn"],[onclick="saveConfig()"]');
+  btns.forEach(b=>b.disabled=true);
+
+  const c={
+    storeName:       document.getElementById('cfg-name')?.value.trim()||'Loja',
+    tagline:         document.getElementById('cfg-tagline')?.value.trim()||'',
+    cnpj:            document.getElementById('cfg-cnpj')?.value.trim()||'',
+    whatsapp:        document.getElementById('cfg-wa')?.value.trim()||'',
+    minOrder:        parseFloat(document.getElementById('cfg-min')?.value)||60,
+    logoUrl:         document.getElementById('cfg-logo')?.value.trim()||'',
+    primaryColor:    document.getElementById('cfg-color')?.value.trim()||'',
+    backgroundColor: document.getElementById('cfg-bg')?.value.trim()||'',
+    announcementBar: document.getElementById('cfg-announcement')?.value.trim()||'',
+    storeDescription:document.getElementById('cfg-desc')?.value.trim()||'',
+    footerText:      document.getElementById('cfg-footer')?.value.trim()||'',
+    socialInstagram: document.getElementById('cfg-instagram')?.value.trim()||'',
+    deliveryFee:     parseFloat(document.getElementById('cfg-delivery-fee')?.value)||0,
+    openingHours:    document.getElementById('cfg-hours')?.value.trim()||'',
+    pixMode:         _pixMode,
+    pixKey:          document.getElementById('cfg-pix-key')?.value.trim()||'',
+    pixOwner:        document.getElementById('cfg-pix-owner')?.value.trim()||'',
+    pixCity:         document.getElementById('cfg-pix-city')?.value.trim()||'SAO PAULO',
   };
+
   try {
-    const res = await apiFetch('/api/config', { method:'POST', body:JSON.stringify(c) });
-    const data = await res.json();
-    if (res.ok) {
-      _cfg = {..._cfg, ...c};
+    const res=await apiFetch('/api/config',{method:'POST',body:JSON.stringify(c)});
+    const data=await res.json();
+    if(res.ok){
+      _cfg={..._cfg,...c};
       updateStats(_cfg);
-      toast('✓ Salvo — visível em todos os dispositivos!', 'ok');
-      setSyncStatus('✓ Sincronizado agora', '#059669');
+      toast('✓ Salvo — visível em todos os dispositivos!','ok');
+      setSyncStatus('✓ Salvo agora','#059669');
     } else {
-      if (res.status === 401) { toast('Sessão expirada — faça login novamente.', 'err'); setTimeout(logout, 1500); }
-      else toast('Erro: ' + (data.error || res.status), 'err');
+      if(res.status===401){toast('Sessão expirada — faça login novamente.','err');setTimeout(logout,1500);}
+      else toast('Erro: '+(data.error||res.status),'err');
     }
-  } catch(e) {
-    toast('Erro de rede: ' + e.message, 'err');
-  }
-  btn.disabled = false; btn.textContent = '💾 Salvar configurações';
+  } catch(e){toast('Erro de rede: '+e.message,'err');}
+
+  btns.forEach(b=>b.disabled=false);
 }
 
-function updateStats(c) {
-  const np = typeof allProducts !== 'undefined' ? allProducts.length : '—';
-  document.getElementById('st-prods').textContent = np;
-  document.getElementById('st-name').textContent  = (c.storeName||'—').split(' ')[0];
-  document.getElementById('st-api').textContent   = c.bcApiKey ? '✓ Ativa' : '✗ Não';
-  document.getElementById('st-backend').textContent = '● Online';
-  document.getElementById('st-backend').className  = 'badge badge-ok';
-  document.getElementById('st-db').textContent = '● Conectado';
-  document.getElementById('st-db').className   = 'badge badge-ok';
+function updateStats(c){
+  const np=typeof allProducts!=='undefined'?allProducts.length:'—';
+  document.getElementById('st-prods').textContent=np;
+  document.getElementById('st-name').textContent=(c.storeName||'—').split(' ')[0];
+  document.getElementById('st-pix-mode').textContent=c.pixMode==='proprio'?'Próprio':'API';
+  document.getElementById('st-backend').textContent='● Online';
+  document.getElementById('st-backend').className='badge badge-ok';
+  document.getElementById('st-db').textContent='● Conectado';
+  document.getElementById('st-db').className='badge badge-ok';
+
+  // Info chip avançado
+  const chip=document.getElementById('info-pix-chip');
+  if(chip)chip.textContent=c.pixMode==='proprio'?'PIX Próprio (QR local)':'Black Cat Pay';
+
+  // Summary
+  const sum=document.getElementById('cfg-summary');
+  if(sum)sum.innerHTML=`
+    <div><strong>Loja:</strong> ${c.storeName||'—'}</div>
+    <div><strong>WhatsApp:</strong> ${c.whatsapp||'—'}</div>
+    <div><strong>Pedido mínimo:</strong> R$ ${c.minOrder||'—'}</div>
+    <div><strong>Entrega:</strong> ${c.deliveryFee>0?'R$ '+c.deliveryFee:'Grátis'}</div>
+    <div><strong>PIX:</strong> ${c.pixMode==='proprio'?'Chave própria ('+c.pixKey.slice(0,8)+'...)':'API Black Cat Pay'}</div>
+  `;
 }
 
-function checkPixStatus(c) {
-  const el = document.getElementById('pix-status-box');
-  const st = document.getElementById('st-pix');
-  if (c.bcApiKey) {
-    el.innerHTML = '<span style="color:var(--ok);font-weight:700">✓ API Key configurada</span><br><small style="color:var(--mt)">Chave: '+c.bcApiKey.slice(0,12)+'••• (configure em Vercel Env Vars)</small>';
-    st.textContent = '● Configurada'; st.className = 'badge badge-ok';
+function updatePixUI(c){
+  const badge=document.getElementById('pix-api-badge');
+  const detail=document.getElementById('pix-api-detail');
+  if(c.bcApiKey){
+    if(badge){badge.textContent='● Configurada';badge.className='badge badge-ok';}
+    if(detail)detail.textContent='Chave: '+c.bcApiKey.slice(0,12)+'•••';
+    document.getElementById('st-pix-badge').textContent='● Ativa';
+    document.getElementById('st-pix-badge').className='badge badge-ok';
   } else {
-    el.innerHTML = '<span style="color:var(--err);font-weight:700">✗ API Key não configurada</span><br><small style="color:var(--mt)">Adicione BC_API_KEY nas variáveis de ambiente do Vercel.</small>';
-    st.textContent = '● Não configurada'; st.className = 'badge badge-err';
+    if(badge){badge.textContent='● Não configurada';badge.className='badge badge-err';}
+    if(detail)detail.innerHTML='<span style="color:var(--err)">Adicione BC_API_KEY nas env vars do Vercel.</span>';
+    document.getElementById('st-pix-badge').textContent='● Sem API Key';
+    document.getElementById('st-pix-badge').className='badge badge-warn';
   }
 }
 
-function setSyncStatus(msg, color) {
-  const el = document.getElementById('sync-status');
-  el.textContent = msg; el.style.color = color;
+// ══════════════════════════════════════════════════
+//  PIX MODE
+// ══════════════════════════════════════════════════
+let _pixMode='api';
+
+function selectPixMode(mode){
+  _pixMode=mode;
+  document.getElementById('pm-api').classList.toggle('sel',mode==='api');
+  document.getElementById('pm-proprio').classList.toggle('sel',mode==='proprio');
+  document.getElementById('pix-api-section').style.display=mode==='api'?'block':'none';
+  document.getElementById('pix-proprio-section').style.display=mode==='proprio'?'block':'none';
 }
 
-// ════════════════════════════════════════
+function updatePixKeyPlaceholder(){
+  const type=document.getElementById('pix-key-type').value;
+  const ph={cpf:'000.000.000-00',cnpj:'00.000.000/0001-00',email:'email@exemplo.com',telefone:'+5511999999999',aleatoria:'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'};
+  document.getElementById('cfg-pix-key').placeholder=ph[type]||'Cole sua chave PIX';
+}
+
+// ══════════════════════════════════════════════════
+//  QR PREVIEW (PIX Próprio)
+// ══════════════════════════════════════════════════
+function gerarPixEMV(chave, nome, cidade, valor){
+  function tlv(id,v){var l=String(v.length).padStart(2,'0');return id+l+v;}
+  function norm(s,max){return(s||'').slice(0,max).normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-zA-Z0-9 ]/g,'').toUpperCase().trim()||'LOJA';}
+  var acc=tlv('00','br.gov.bcb.pix')+tlv('01',chave);
+  var mid=tlv('26',acc);
+  var nm=norm(nome,25);var cid=norm(cidade,15);
+  var add=tlv('62',tlv('05','***'));
+  var amt=valor>0?tlv('54',parseFloat(valor).toFixed(2)):'';
+  var emv='000201'+mid+'52040000'+'5303986'+amt+'5802BR'+tlv('59',nm)+tlv('60',cid)+add+'6304';
+  function crc16(s){var c=0xFFFF;for(var i=0;i<s.length;i++){c^=s.charCodeAt(i)<<8;for(var j=0;j<8;j++){c=(c&0x8000)?((c<<1)^0x1021):(c<<1);}}return(c&0xFFFF).toString(16).toUpperCase().padStart(4,'0');}
+  return emv+crc16(emv);
+}
+
+function atualizarQRPreview(){
+  const chave=document.getElementById('cfg-pix-key')?.value.trim();
+  const nome =document.getElementById('cfg-pix-owner')?.value.trim();
+  const cidade=document.getElementById('cfg-pix-city')?.value.trim()||'SAO PAULO';
+  const wrap=document.getElementById('qr-prev-wrap');
+  const ph=document.getElementById('qr-prev-ph');
+  if(!chave||!nome){if(ph)ph.style.display='';return;}
+  try {
+    const code=gerarPixEMV(chave,nome,cidade,10.00);
+    wrap.innerHTML='';
+    new QRCode(wrap,{text:code,width:136,height:136,correctLevel:QRCode.CorrectLevel.M});
+    if(ph)ph.style.display='none';
+  } catch(e){if(ph){ph.textContent='Erro ao gerar QR';ph.style.display='';}}
+}
+
+// ══════════════════════════════════════════════════
 //  UI HELPERS
-// ════════════════════════════════════════
-function syncPick(id, val) { if(/^#[0-9a-f]{6}$/i.test(val)) document.getElementById(id).value=val; }
-function prevLogo(url) {
-  const img=document.getElementById('logo-prev'), ph=document.getElementById('logo-ph');
+// ══════════════════════════════════════════════════
+function syncPick(id,val){if(/^#[0-9a-f]{6}$/i.test(val))document.getElementById(id).value=val;}
+function previewCor(){
+  const cor=document.getElementById('cfg-color').value;
+  const bg=document.getElementById('cfg-bg').value;
+  const prev=document.getElementById('color-preview');
+  const btn=document.getElementById('color-btn-prev');
+  if(bg&&prev)prev.style.background=bg;
+  if(cor&&btn)btn.style.background=cor;
+}
+function prevLogo(url){
+  const img=document.getElementById('logo-prev'),ph=document.getElementById('logo-ph');
   if(url){img.src=url;img.classList.add('on');ph.style.display='none';}
   else{img.classList.remove('on');ph.style.display='flex';}
 }
+function setSyncStatus(msg,color){const el=document.getElementById('sync-status');el.textContent=msg;el.style.color=color;}
 let _tid;
 function toast(msg,type){const el=document.getElementById('toast');el.textContent=msg;el.className='show '+(type||'');clearTimeout(_tid);_tid=setTimeout(()=>{el.className='';},2800);}
-function showTab(name,btn){document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));document.getElementById('sec-'+name).classList.add('on');btn.classList.add('on');if(name==='produtos')renderProds();}
+function showTab(name,btn){
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.getElementById('sec-'+name).classList.add('on');
+  btn.classList.add('on');
+  if(name==='produtos')renderProds();
+}
+function limparCache(){
+  localStorage.removeItem('_scfg');
+  toast('Cache local limpo!','ok');
+}
+function testarSenha(){
+  const s=prompt('Digite a senha para ver o hash SHA-256:');
+  if(!s)return;
+  // Calcula SHA-256 via crypto (browser)
+  const enc=new TextEncoder().encode(s);
+  crypto.subtle.digest('SHA-256',enc).then(buf=>{
+    const hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+    prompt('Hash SHA-256 da senha (copie e cole em ADMIN_HASH no Vercel):',hex);
+  });
+}
 
-// ════════════════════════════════════════
-//  PRODUCTS (localStorage — base de dados local)
-// ════════════════════════════════════════
+// ══════════════════════════════════════════════════
+//  PRODUCTS (localStorage — base local)
+// ══════════════════════════════════════════════════
 let prodPage=1,prodQ='';
 const PER=15;
 function getCust(){try{return JSON.parse(localStorage.getItem('custom_products')||'[]');}catch{return[];}}
@@ -503,7 +834,7 @@ function renderProds(){
   const all=allProds(),q=prodQ.toLowerCase();
   const fil=q?all.filter(p=>(p.name+' '+(p.desc||'')).toLowerCase().includes(q)):all;
   const sl=fil.slice((prodPage-1)*PER,prodPage*PER);
-  tbody.innerHTML=sl.map(p=>`<tr><td><img class="thumb" src="${p.img||''}" onerror="this.style.opacity='.2'" loading="lazy"></td><td><input class="ei" value="${esc(p.name)}" onchange="updProd(${JSON.stringify(p.id)},'name',this.value)" style="width:180px"></td><td><input class="ei" type="number" step="0.01" value="${p.price}" onchange="updProd(${JSON.stringify(p.id)},'price',+this.value)" style="width:80px"></td><td><input class="ei" type="number" step="0.01" value="${p.oldPrice||''}" onchange="updProd(${JSON.stringify(p.id)},'oldPrice',+this.value||null)" style="width:80px"></td><td><button class="btn-sm btn-del" onclick="delProd(${JSON.stringify(p.id)})">✕</button></td></tr>`).join('');
+  tbody.innerHTML=sl.map(p=>`<tr><td><img class="thumb" src="${p.img||''}" onerror="this.style.opacity='.2'" loading="lazy"></td><td><input class="ei" value="${esc(p.name)}" onchange="updProd(${JSON.stringify(p.id)},'name',this.value)" style="width:160px"></td><td><input class="ei" type="number" step="0.01" value="${p.price}" onchange="updProd(${JSON.stringify(p.id)},'price',+this.value)" style="width:75px"></td><td><input class="ei" type="number" step="0.01" value="${p.oldPrice||''}" onchange="updProd(${JSON.stringify(p.id)},'oldPrice',+this.value||null)" style="width:75px"></td><td><button class="btn-sm btn-del" onclick="delProd(${JSON.stringify(p.id)})">✕</button></td></tr>`).join('');
   const tot=Math.ceil(fil.length/PER),pag=document.getElementById('prod-pag');pag.innerHTML='';
   for(let i=1;i<=tot;i++){const b=document.createElement('button');b.textContent=i;if(i===prodPage)b.classList.add('cur');b.onclick=()=>{prodPage=i;renderProds();};pag.appendChild(b);}
 }
@@ -518,16 +849,18 @@ function addProd(){
   saveCust(cust);['n-name','n-desc','n-price','n-old','n-img'].forEach(id=>document.getElementById(id).value='');toggleAdd();renderProds();toast('✓ Produto adicionado!','ok');
 }
 
-// ════════════════════════════════════════
+// ══════════════════════════════════════════════════
 //  INIT
-// ════════════════════════════════════════
-async function initAdmin() { await loadConfig(); }
+// ══════════════════════════════════════════════════
+async function initAdmin(){
+  await loadConfig();
+}
 
-if (isSessValid()) {
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('admin-screen').style.display = 'block';
+if(isSessValid()){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('admin-screen').style.display='block';
   initAdmin();
-} else if (isLocked()) {
+} else if(isLocked()){
   showLocked();
 }
 </script>

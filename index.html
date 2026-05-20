@@ -592,7 +592,7 @@
     <div style="padding:20px 16px 80px;max-width:600px;margin:0 auto;line-height:1.7;font-size:14px;color:var(--foreground)">
       <p style="color:var(--muted);font-size:12px;margin-bottom:20px">Última atualização: Janeiro de 2026</p>
       <h2 style="font-size:16px;font-weight:700;margin:20px 0 8px">1. Aceitação dos termos</h2>
-      <p>Ao acessar e usar o site Florenza Flores (florataexpress.delivery), você concorda com estes Termos e Condições. Se não concordar, não utilize nossos serviços.</p>
+      <p>Ao acessar e usar o site desta loja, você concorda com estes Termos e Condições. Se não concordar, não utilize nossos serviços.</p>
       <h2 style="font-size:16px;font-weight:700;margin:20px 0 8px">2. Produtos e preços</h2>
       <p>Todos os preços estão em Reais (BRL) e incluem impostos. Reservamo-nos o direito de alterar preços sem aviso prévio. O preço válido é sempre o exibido no momento da finalização do pedido.</p>
       <h2 style="font-size:16px;font-weight:700;margin:20px 0 8px">3. Pedidos e pagamentos</h2>
@@ -699,7 +699,7 @@
         <div style="background:var(--secondary);border-radius:12px;padding:14px;text-align:center"><div style="font-size:24px;margin-bottom:6px">🔒</div><p style="font-weight:700;font-size:13px">Pagamento seguro</p></div>
       </div>
       <h2 style="font-size:16px;font-weight:700;margin:20px 0 8px">CNPJ e informações legais</h2>
-      <p style="color:var(--muted)">Florenza Flores — florataexpress.delivery<br>Atendimento: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="8deee2e3f9ecf9e2cdebe1e2ffecf9ece8f5fdffe8fefea3e9e8e1e4fbe8fff4">[email&#160;protected]</a></p>
+      <p style="color:var(--muted)" id="about-legal-txt">Atendimento via WhatsApp</p>
     </div>
   </div>
 
@@ -727,8 +727,8 @@
         <div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0"><span style="color:var(--muted)">Domingo e Feriados</span><span style="font-weight:600">09h às 18h</span></div>
       </div>
       <div style="margin-top:16px;background:var(--secondary);border-radius:14px;padding:16px;font-size:13px;color:var(--muted);text-align:center">
-        <p>Florenza Flores — florataexpress.delivery</p>
-        <p style="margin-top:4px">CNPJ: 09.112.454/0001-29</p>
+        <p id="contact-brand-txt">Nossa loja</p>
+        <p style="margin-top:4px" id="contact-cnpj-txt"></p>
       </div>
     </div>
   </div>
@@ -890,7 +890,7 @@
           </div>
           <div style="background:#fff;border-radius:16px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.06);display:flex;align-items:center;gap:12px;margin-bottom:12px">
             <img loading="lazy" decoding="async" src="imagens/img_b042a7c4227e.jpg" style="width:48px;height:48px;border-radius:10px;object-fit:cover;flex-shrink:0">
-            <div><div style="color:#facc15;font-size:13px;margin-bottom:3px">★★★★★</div><p style="font-weight:700;font-size:13px;color:#111;margin-bottom:2px">Entrega Garantida Floratta</p><p style="font-size:11px;color:#6b7280;line-height:1.4">Suas flores são entregues com cuidado especial, embalagem premium e acompanhamento em tempo real.</p></div>
+            <div><div style="color:#facc15;font-size:13px;margin-bottom:3px">★★★★★</div><p style="font-weight:700;font-size:13px;color:#111;margin-bottom:2px">Entrega Garantida</p><p style="font-size:11px;color:#6b7280;line-height:1.4">Suas flores são entregues com cuidado especial, embalagem premium e acompanhamento em tempo real.</p></div>
           </div>
           <div class="co-security-block"></div>
         </div>
@@ -2370,16 +2370,41 @@ function coToggleDelivery() {
   document.getElementById('co-delivery-chevron').style.transform = coDeliveryOpen ? 'rotate(180deg)' : 'rotate(0)';
 }
 
-// ========== BLACK CAT INTEGRATION ==========
-// BC_API_KEY é carregada do backend (/api/config) — ver bloco ao final do body
+// ========== PAYMENT GLOBALS ==========
+// BC_API_KEY e PIX_* são carregadas do backend /api/config
 var BC_API_KEY = '';
-const BC_BASE    = 'https://api.blackcatpay.com.br/api';
+const BC_BASE = 'https://api.blackcatpay.com.br/api';
+var PIX_MODE  = 'api';     // 'api' = Black Cat Pay | 'proprio' = PIX Próprio
+var PIX_KEY   = '';        // Chave PIX própria
+var PIX_OWNER = 'LOJA';   // Nome do titular
+var PIX_CITY  = 'SAO PAULO'; // Cidade
+
+// ========== PIX EMV QR CODE GENERATOR ==========
+function gerarPixEMV(chave, nome, cidade, valor) {
+  function tlv(id, v) { var l = String(v.length).padStart(2,'0'); return id+l+v; }
+  function norm(s, max) { return (s||'').slice(0,max).normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-zA-Z0-9 ]/g,'').toUpperCase().trim() || 'LOJA'; }
+  var acc  = tlv('00','br.gov.bcb.pix') + tlv('01', chave);
+  var mid  = tlv('26', acc);
+  var nm   = norm(nome, 25);
+  var cid  = norm(cidade, 15);
+  var txid = tlv('05','***');
+  var add  = tlv('62', txid);
+  var amt  = valor > 0 ? tlv('54', parseFloat(valor).toFixed(2)) : '';
+  var emv  = '000201' + mid + '52040000' + '5303986' + amt + '5802BR' + tlv('59',nm) + tlv('60',cid) + add + '6304';
+  function crc16(s) {
+    var c = 0xFFFF;
+    for (var i=0;i<s.length;i++){c^=s.charCodeAt(i)<<8;for(var j=0;j<8;j++){c=(c&0x8000)?((c<<1)^0x1021):(c<<1);}}
+    return (c&0xFFFF).toString(16).toUpperCase().padStart(4,'0');
+  }
+  return emv + crc16(emv);
+}
 
 let hcTransactionId  = null;
 let hcPollingInterval = null;
 let hcPixCode         = '';
 
 async function coFazerPedido() {
+  if (PIX_MODE === 'proprio' && PIX_KEY) { coFazerPedidoProprio(); return; }
   // Somente PIX
   const shipExtra = coShipType === 'fast' ? 6.90 : 0;
   const fVal = document.getElementById('co-upsell-ferrero').checked ? 24.90 : 0;
@@ -2429,7 +2454,7 @@ async function coFazerPedido() {
       zipCode: cep
     },
     pix: { expiresInDays: 1 },
-    externalRef: 'floratta-' + Date.now()
+    externalRef: 'pedido-' + Date.now()
   };
 
   try {
@@ -2780,6 +2805,67 @@ function coDeliveryCopy() {
 
 function hcSkipDelivery() {
   hcShowFinalSuccess();
+}
+
+// ========== PIX PRÓPRIO (sem gateway, QR local) ==========
+function coFazerPedidoProprio() {
+  const shipExtra = coShipType === 'fast' ? 6.90 : 0;
+  const fVal = document.getElementById('co-upsell-ferrero').checked ? 24.90 : 0;
+  const uVal = document.getElementById('co-upsell-urso').checked    ? 19.90 : 0;
+  const totalReais = cart.reduce((s,i) => s + i.price * i.qty, 0) + shipExtra + fVal + uVal;
+  const fmt = v => 'R$ ' + v.toFixed(2).replace('.', ',');
+
+  const pixCode = gerarPixEMV(PIX_KEY, PIX_OWNER, PIX_CITY || 'SAO PAULO', totalReais);
+  window._propPixCode = pixCode;
+
+  document.getElementById('co-step-3').style.display   = 'none';
+  document.getElementById('co-step-pix').style.display = 'block';
+  document.getElementById('co-header-title').textContent = 'Pagamento PIX';
+  window.scrollTo(0, 0);
+
+  document.getElementById('co-step-pix').innerHTML = `
+    <div style="max-width:440px;margin:0 auto">
+      <div style="background:#fff;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,.06);padding:24px;text-align:center;margin-bottom:14px">
+        <div style="font-size:14px;font-weight:700;margin-bottom:4px">Valor a pagar</div>
+        <div style="font-size:28px;font-weight:900;color:var(--primary);margin-bottom:18px">${fmt(totalReais)}</div>
+        <div style="width:190px;height:190px;margin:0 auto 18px;display:flex;align-items:center;justify-content:center;background:#fff;overflow:hidden;border:2px solid #e5e7eb;border-radius:12px" id="prop-qr-box"></div>
+        <div style="font-size:12px;color:#6b7280;margin-bottom:6px">Escaneie o QR Code ou copie o código abaixo</div>
+        <div style="background:#f3f4f6;border-radius:8px;padding:10px 12px;font-size:10px;color:#374151;word-break:break-all;margin-bottom:14px;font-family:monospace;line-height:1.5;text-align:left;max-height:80px;overflow:auto" id="prop-pix-code">${pixCode}</div>
+        <button onclick="propCopiarPix()" style="width:100%;background:var(--primary);color:#fff;border:none;border-radius:10px;padding:14px;font-weight:700;font-size:14px;cursor:pointer;margin-bottom:10px">📋 COPIAR CÓDIGO PIX</button>
+      </div>
+      <div style="background:#fff;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,.06);padding:16px;margin-bottom:14px">
+        <p style="font-size:13px;font-weight:700;color:#374151;margin-bottom:8px">✅ Após efetuar o pagamento:</p>
+        <p style="font-size:12px;color:#6b7280;margin-bottom:14px">Clique no botão abaixo para confirmar seu pedido via WhatsApp e enviar o comprovante.</p>
+        <button onclick="propConfirmarWhats()" style="width:100%;background:#25d366;color:#fff;border:none;border-radius:10px;padding:14px;font-weight:700;font-size:14px;cursor:pointer">📱 JÁ PAGUEI — CONFIRMAR PEDIDO</button>
+      </div>
+      <div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:12px;padding:12px 14px;font-size:12px;color:#92400e;text-align:center">
+        ⚠ Guarde o comprovante do PIX. Ele pode ser solicitado para confirmar seu pedido.
+      </div>
+    </div>`;
+
+  setTimeout(() => {
+    const box = document.getElementById('prop-qr-box');
+    if (box && typeof QRCode !== 'undefined') {
+      new QRCode(box, { text: pixCode, width: 170, height: 170, correctLevel: QRCode.CorrectLevel.M });
+    }
+  }, 200);
+}
+
+function propCopiarPix() {
+  const code = window._propPixCode || '';
+  const copy = t => { try { navigator.clipboard.writeText(t); } catch(e) { const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();document.execCommand('copy');document.body.removeChild(a); } };
+  copy(code); showToast('✅ Código PIX copiado!');
+}
+
+function propConfirmarWhats() {
+  const num = window._waNum || '5511999999999';
+  const nome = document.getElementById('co-nome')?.value || '';
+  const items = cart.map(i=>i.qty+'x '+i.name).join(', ');
+  const shipExtra = coShipType === 'fast' ? 6.90 : 0;
+  const totalReais = cart.reduce((s,i)=>s+i.price*i.qty,0) + shipExtra;
+  const total = 'R$ '+totalReais.toFixed(2).replace('.',',');
+  const msg = encodeURIComponent(`Olá! Acabei de realizar um pedido e efetuei o pagamento via PIX.\n\nNome: ${nome}\nPedido: ${items}\nTotal: ${total}\n\nSegue o comprovante.`);
+  window.open(`https://wa.me/${num}?text=${msg}`, '_blank');
 }
 
 function hcShowFinalSuccess() {
@@ -3428,7 +3514,7 @@ function fetchWithTimeout(url, ms = 3500) {
 async function detectLocationByIP() {
   // 1) Tenta cache de sessão (evita refazer request a cada navegação)
   try {
-    const cached = sessionStorage.getItem('floratta_geo');
+    const cached = sessionStorage.getItem('_lj_geo');
     if (cached) {
       const { state, city } = JSON.parse(cached);
       if (state) {
@@ -3448,7 +3534,7 @@ async function detectLocationByIP() {
         if (stateCode) {
           applyDetectedLocation(stateCode, parsed.city || '');
           try {
-            sessionStorage.setItem('floratta_geo', JSON.stringify({ state: stateCode, city: parsed.city || '' }));
+            sessionStorage.setItem('_lj_geo', JSON.stringify({ state: stateCode, city: parsed.city || '' }));
           } catch(_) {}
           return;
         }
@@ -3518,6 +3604,20 @@ detectLocationByIP();
 
     // API Key PIX — injeta na variável global (vem do servidor, nunca no código)
     if (cfg.bcApiKey) BC_API_KEY = cfg.bcApiKey;
+
+    // PIX Próprio
+    if (cfg.pixMode)  PIX_MODE  = cfg.pixMode;
+    if (cfg.pixKey)   PIX_KEY   = cfg.pixKey;
+    if (cfg.pixOwner) PIX_OWNER = cfg.pixOwner;
+    if (cfg.pixCity)  PIX_CITY  = cfg.pixCity;
+
+    // CNPJ no contato
+    var cnpjEl = document.getElementById('contact-cnpj-txt');
+    if (cnpjEl && cfg.cnpj) cnpjEl.textContent = 'CNPJ: ' + cfg.cnpj;
+
+    // Marca no contato
+    var brandEl = document.getElementById('contact-brand-txt');
+    if (brandEl) brandEl.textContent = name;
   }
 
   // Aplica cache local imediatamente (sem flickering)
