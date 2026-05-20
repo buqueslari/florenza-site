@@ -7,14 +7,14 @@
   "logoUrl": "https://obvious-aquamarine-gnrdsqzu30.edgeone.app/unnamed%20(1).jpg",
   "primaryColor": "hsl(340, 45%, 40%)",
   "backgroundColor": "hsl(15, 60%, 96%)",
-  "pixMode": "api",
-  "pixKey": "",
-  "pixOwner": "",
-  "pixCity": "SAO PAULO",
-  "deliveryFee": 0,
-  "openingHours": "Seg-Sex: 8h-22h | Sáb: 8h-20h | Dom: 9h-18h",
   "announcementBar": "",
   "storeDescription": "",
+  "footerText": "",
   "socialInstagram": "",
-  "footerText": ""
+  "deliveryFee": 0,
+  "openingHours": "Seg-Sex: 7h-22h | Sáb: 7h-20h | Dom: 7h-22h",
+  "pixMode": "proprio",
+  "pixKey": "",
+  "pixOwner": "",
+  "pixCity": "SAO PAULO"
 }
