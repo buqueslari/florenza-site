@@ -2404,6 +2404,8 @@ let hcPollingInterval = null;
 let hcPixCode         = '';
 
 async function coFazerPedido() {
+  // Sempre busca config de pagamento fresca do servidor antes de cobrar
+  await _refreshPaymentConfig();
   if (PIX_MODE === 'proprio' && PIX_KEY) { coFazerPedidoProprio(); return; }
   // Somente PIX
   const shipExtra = coShipType === 'fast' ? 6.90 : 0;
@@ -2808,7 +2810,8 @@ function hcSkipDelivery() {
 }
 
 // ========== PIX PRÓPRIO (sem gateway, QR local) ==========
-function coFazerPedidoProprio() {
+async function coFazerPedidoProprio() {
+  await _refreshPaymentConfig();
   const shipExtra = coShipType === 'fast' ? 6.90 : 0;
   const fVal = document.getElementById('co-upsell-ferrero').checked ? 24.90 : 0;
   const uVal = document.getElementById('co-upsell-urso').checked    ? 19.90 : 0;
@@ -3549,19 +3552,27 @@ async function detectLocationByIP() {
 function applyDetectedLocation(stateCode, city) {
   locState = stateCode;
   locCity  = city || '';
+
+  // Salva globalmente para uso posterior (checkout, analytics)
+  window._geoState = stateCode;
+  window._geoCity  = city || '';
+
+  // Pré-seleciona estado no modal de localização
   const stateEl = document.getElementById('loc-state');
   if (stateEl) {
     stateEl.value = stateCode;
-    // Dispara evento para qualquer listener registrado no select
     stateEl.dispatchEvent(new Event('change', { bubbles: true }));
   }
+
   // Preenche o nome da cidade no hero/banner da home
   if (city) {
-    const ids = ['cidade-ip', 'cidade-ip-2', 'cidade-ip-3'];
-    ids.forEach(id => {
-      const el = document.getElementById(id);
+    ['cidade-ip', 'cidade-ip-2', 'cidade-ip-3'].forEach(function(id) {
+      var el = document.getElementById(id);
       if (el) el.textContent = city;
     });
+    // Pré-preenche o campo cidade do checkout (só se ainda vazio)
+    var coCidade = document.getElementById('co-cidade');
+    if (coCidade && !coCidade.value) coCidade.value = city;
   }
 }
 
@@ -3620,19 +3631,45 @@ detectLocationByIP();
     if (brandEl) brandEl.textContent = name;
   }
 
-  // Aplica cache local imediatamente (sem flickering)
-  try { applyConfig(JSON.parse(localStorage.getItem('_scfg')||'{}')); } catch(e) {}
+  // Aplica cache local imediatamente (sem flickering visual)
+  // Dados de pagamento são EXCLUÍDOS do cache — sempre vêm frescos do servidor
+  try {
+    var cached = JSON.parse(localStorage.getItem('_scfg') || '{}');
+    // Remove campos de pagamento do cache local (segurança + freshness)
+    delete cached.bcApiKey; delete cached.pixKey; delete cached.pixMode; delete cached.pixOwner;
+    applyConfig(cached);
+  } catch(e) {}
 
-  // Busca do backend — fonte de verdade
-  fetch('/api/config')
+  // Busca do backend — fonte de verdade para TUDO incluindo PIX
+  fetch('/api/config?_=' + Date.now())
     .then(function(r){ return r.ok ? r.json() : null; })
     .then(function(cfg) {
       if (!cfg) return;
       applyConfig(cfg);
-      try { localStorage.setItem('_scfg', JSON.stringify(cfg)); } catch(e) {}
+      // Salva no cache apenas campos visuais — pagamento nunca em cache
+      try {
+        var toCache = Object.assign({}, cfg);
+        delete toCache.bcApiKey; delete toCache.pixKey;
+        localStorage.setItem('_scfg', JSON.stringify(toCache));
+      } catch(e) {}
     })
     .catch(function(){});
 })();
+
+// ── Garante config de pagamento sempre fresca antes do checkout ──────────
+// Chamado por coFazerPedido() — busca do servidor com cache-bust
+async function _refreshPaymentConfig() {
+  try {
+    var r = await fetch('/api/config?_=' + Date.now());
+    if (!r.ok) return;
+    var cfg = await r.json();
+    if (cfg.bcApiKey) BC_API_KEY = cfg.bcApiKey;
+    if (cfg.pixMode)  PIX_MODE   = cfg.pixMode;
+    if (cfg.pixKey)   PIX_KEY    = cfg.pixKey;
+    if (cfg.pixOwner) PIX_OWNER  = cfg.pixOwner;
+    if (cfg.pixCity)  PIX_CITY   = cfg.pixCity;
+  } catch(e) { /* usa valores em memória se falhar */ }
+}
 </script>
 </body>
 </html>
